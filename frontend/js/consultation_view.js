@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiChatForm = document.getElementById('ai-chat-form');
     const aiQuestionInput = document.getElementById('ai-question-input');
     const chatWindow = document.getElementById('chat-window');
+    
+    // Chat state management
+    let isChatMinimized = false;
+    let chatScrollPosition = 0;
 
     let mediaRecorder;
     let audioChunks = [];
@@ -51,11 +55,45 @@ document.addEventListener('DOMContentLoaded', () => {
         aiChatWidget.classList.remove('hidden');
     }
 
-    // Toggle Chat Widget Body
-    chatWidgetHeader.addEventListener('click', () => {
-        chatWidgetBody.classList.toggle('hidden');
+    // Enhanced Chat Widget Controls
+    chatWidgetHeader.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (isChatMinimized) {
+            // Restore chat
+            chatWidgetBody.classList.remove('hidden');
+            chatWidgetBody.style.transform = 'translateY(0)';
+            chatWidgetBody.style.opacity = '1';
+            isChatMinimized = false;
+            
+            // Restore scroll position
+            setTimeout(() => {
+                chatWindow.scrollTop = chatScrollPosition;
+            }, 100);
+        } else {
+            // Minimize chat
+            chatScrollPosition = chatWindow.scrollTop;
+            chatWidgetBody.style.transform = 'translateY(100%)';
+            chatWidgetBody.style.opacity = '0';
+            setTimeout(() => {
+                chatWidgetBody.classList.add('hidden');
+            }, 300);
+            isChatMinimized = true;
+        }
+        
         const icon = chatWidgetHeader.querySelector('i');
         icon.classList.toggle('rotate-180');
+    });
+
+    // Prevent chat window clicks from bubbling up to main page
+    chatWindow.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Prevent chat form clicks from bubbling up
+    aiChatForm.addEventListener('click', (e) => {
+        e.stopPropagation();
     });
 
     async function loadConsultationDetails() {
@@ -195,9 +233,19 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const question = aiQuestionInput.value.trim();
         if (!question) return;
+
+        // Disable input and show loading state
+        aiQuestionInput.disabled = true;
+        const submitBtn = aiChatForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> Sending...';
+        submitBtn.disabled = true;
+        lucide.createIcons();
+
         addMessageToChat(question, 'user');
         aiQuestionInput.value = '';
         addTypingIndicator();
+
         try {
             const response = await api.askAI(consultationId, question, token);
             removeTypingIndicator();
@@ -210,7 +258,27 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             removeTypingIndicator();
             addMessageToChat(error.message, 'assistant', true);
+        } finally {
+            // Re-enable input and restore button
+            aiQuestionInput.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+            aiQuestionInput.focus();
         }
+    });
+
+    // Add keyboard shortcuts
+    aiQuestionInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            aiChatForm.dispatchEvent(new Event('submit'));
+        }
+    });
+
+    // Auto-resize input field
+    aiQuestionInput.addEventListener('input', () => {
+        aiQuestionInput.style.height = 'auto';
+        aiQuestionInput.style.height = Math.min(aiQuestionInput.scrollHeight, 120) + 'px';
     });
 
     recordBtn.addEventListener('click', () => {
@@ -297,36 +365,154 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addMessageToChat(text, sender, isError = false) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex';
-        const bubble = document.createElement('p');
-        bubble.className = 'chat-bubble';
+        messageDiv.className = 'flex mb-4 animate-fade-in';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'max-w-[80%] rounded-2xl px-4 py-3 shadow-sm';
+        
         if (sender === 'user') {
-            bubble.classList.add('chat-bubble-user');
+            messageDiv.classList.add('justify-end');
+            bubble.classList.add('bg-blue-500', 'text-white', 'ml-4');
+            bubble.innerHTML = formatMessageContent(text);
         } else {
-            bubble.classList.add('chat-bubble-assistant');
-            if(isError) bubble.classList.add('!bg-red-100', '!text-red-700');
+            messageDiv.classList.add('justify-start');
+            if (isError) {
+                bubble.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+            } else {
+                bubble.classList.add('bg-gray-100', 'text-gray-800', 'mr-4');
+            }
+            bubble.innerHTML = formatMessageContent(text);
         }
-        bubble.textContent = text;
+        
+        // Add timestamp
+        const timestamp = document.createElement('div');
+        timestamp.className = 'message-timestamp text-center mt-1';
+        timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         messageDiv.appendChild(bubble);
+        messageDiv.appendChild(timestamp);
+        
         chatWindow.appendChild(messageDiv);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        // Smooth scroll to bottom
+        smoothScrollToBottom();
+    }
+    
+    function formatMessageContent(text) {
+        // Convert URLs to clickable links
+        text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" class="text-blue-600 underline">$1</a>');
+        
+        // Format lists
+        text = text.replace(/^(\d+\.|\*|\-)\s+(.+)$/gm, '<li class="ml-4">$2</li>');
+        if (text.includes('<li')) {
+            text = text.replace(/^(.+)$/gm, '<ul class="list-disc space-y-1">$1</ul>');
+        }
+        
+        // Format code blocks
+        text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-gray-800 text-green-400 p-3 rounded-md overflow-x-auto my-2"><code>$2</code></pre>');
+        
+        // Format inline code
+        text = text.replace(/`([^`]+)`/g, '<code class="bg-gray-200 px-1 py-0.5 rounded text-sm">$1</code>');
+        
+        // Format bold text
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold">$1</strong>');
+        
+        // Format italic text
+        text = text.replace(/\*(.+?)\*/g, '<em class="italic">$1</em>');
+        
+        // Convert line breaks to <br> tags
+        text = text.replace(/\n/g, '<br>');
+        
+        return text;
+    }
+    
+    function smoothScrollToBottom() {
+        if (!chatWindow) return;
+        
+        const scrollHeight = chatWindow.scrollHeight;
+        const clientHeight = chatWindow.clientHeight;
+        const maxScrollTop = scrollHeight - clientHeight;
+        
+        // If already at bottom, don't animate
+        if (chatWindow.scrollTop >= maxScrollTop - 10) {
+            chatWindow.scrollTop = maxScrollTop;
+            return;
+        }
+        
+        // Smooth scroll animation
+        const startScrollTop = chatWindow.scrollTop;
+        const distance = maxScrollTop - startScrollTop;
+        const duration = 300;
+        const startTime = performance.now();
+        
+        function animateScroll(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Easing function for smooth animation
+            const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+            
+            chatWindow.scrollTop = startScrollTop + (distance * easeOutCubic);
+            
+            if (progress < 1) {
+                requestAnimationFrame(animateScroll);
+            }
+        }
+        
+        requestAnimationFrame(animateScroll);
     }
 
     function addTypingIndicator() {
         const indicator = document.createElement('div');
         indicator.id = 'typing-indicator';
-        indicator.className = 'flex';
-        indicator.innerHTML = `<p class="chat-bubble chat-bubble-assistant flex items-center space-x-1"><span class="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span><span class="h-2 w-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span><span class="h-2 w-2 bg-gray-400 rounded-full animate-bounce"></span></p>`;
+        indicator.className = 'flex justify-start mb-4 animate-fade-in';
+        indicator.innerHTML = `
+            <div class="max-w-[80%] rounded-2xl px-4 py-3 shadow-sm bg-gray-100 text-gray-800 mr-4">
+                <div class="flex items-center space-x-3">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="text-sm text-gray-500 font-medium">AI is analyzing...</span>
+                </div>
+            </div>
+        `;
         chatWindow.appendChild(indicator);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        smoothScrollToBottom();
     }
 
     function removeTypingIndicator() {
         const indicator = document.getElementById('typing-indicator');
-        if (indicator) indicator.remove();
+        if (indicator) {
+            indicator.style.opacity = '0';
+            indicator.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                indicator.remove();
+            }, 200);
+        }
+    }
+
+    // Initialize chat window
+    function initializeChatWindow() {
+        // Ensure chat window is properly scrollable
+        if (chatWindow) {
+            chatWindow.style.overflowY = 'auto';
+            chatWindow.style.overflowX = 'hidden';
+            
+            // Add scroll event listener to prevent bubbling
+            chatWindow.addEventListener('scroll', (e) => {
+                e.stopPropagation();
+            });
+            
+            // Add wheel event listener to prevent main page scroll when scrolling chat
+            chatWindow.addEventListener('wheel', (e) => {
+                e.stopPropagation();
+            });
+        }
     }
 
     // Initial data load
     loadConsultationDetails();
     loadReports();
+    initializeChatWindow();
 });
