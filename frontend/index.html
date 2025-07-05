@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Health Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Main Application Container -->
+    <div id="app-container">
+
+        <!-- Login/Registration View -->
+        <div id="auth-view" class="min-h-screen flex items-center justify-center bg-gray-100">
+            <!-- Auth form content is unchanged -->
+            <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+                <div class="text-center">
+                    <i data-lucide="heart-pulse" class="mx-auto h-12 w-12 text-blue-600"></i>
+                    <h2 id="form-title" class="mt-4 text-3xl font-bold text-gray-900">Sign in to your account</h2>
+                </div>
+                <form id="login-form" class="space-y-6">
+                    <div>
+                        <label for="login-email" class="text-sm font-medium text-gray-700">Email address</label>
+                        <input id="login-email" name="email" type="email" autocomplete="email" required class="input-field" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label for="login-password" class="text-sm font-medium text-gray-700">Password</label>
+                        <input id="login-password" name="password" type="password" autocomplete="current-password" required class="input-field" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Sign In</button>
+                </form>
+                <form id="register-form" class="hidden space-y-6">
+                    <div>
+                        <label for="register-name" class="text-sm font-medium text-gray-700">Full Name</label>
+                        <input id="register-name" name="name" type="text" required class="input-field" placeholder="Dr. Stephen Strange">
+                    </div>
+                    <div>
+                        <label for="register-email" class="text-sm font-medium text-gray-700">Email address</label>
+                        <input id="register-email" name="email" type="email" required class="input-field" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label for="register-password" class="text-sm font-medium text-gray-700">Password</label>
+                        <input id="register-password" name="password" type="password" required class="input-field" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label for="register-role" class="text-sm font-medium text-gray-700">I am a...</label>
+                        <select id="register-role" name="role" required class="input-field">
+                            <option value="doctor">Doctor</option>
+                            <option value="patient">Patient</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Create Account</button>
+                </form>
+                <p id="auth-toggle" class="text-center text-sm text-gray-600">
+                    Don't have an account? <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Sign up</a>
+                </p>
+                <div id="auth-error" class="text-center text-sm text-red-600 font-medium"></div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard View -->
+        <div id="dashboard-view" class="hidden">
+            <header class="bg-white shadow-sm">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="heart-pulse" class="h-8 w-8 text-blue-600"></i>
+                        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                    </div>
+                    <div>
+                        <span id="user-greeting" class="text-gray-600 mr-4"></span>
+                        <button id="logout-btn" class="btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </header>
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- New "Create Consultation" Button -->
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">Your Consultations</h2>
+                    <button id="create-consultation-btn" class="hidden btn-primary flex items-center space-x-2">
+                        <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                        <span>New Consultation</span>
+                    </button>
+                </div>
+                <div id="consultations-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Consultation cards will be injected here -->
+                </div>
+                 <div id="loading-spinner" class="hidden text-center py-10">
+                    <i data-lucide="loader-circle" class="animate-spin h-10 w-10 text-blue-600 mx-auto"></i>
+                    <p class="mt-2 text-gray-600">Loading consultations...</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- New Modal for Creating Consultation -->
+    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div class="relative mx-auto p-8 border w-full max-w-lg shadow-lg rounded-xl bg-white">
+            <h3 class="text-2xl font-semibold text-gray-900 mb-6">Schedule a New Consultation</h3>
+            <form id="create-consultation-form">
+                <div class="space-y-4">
+                    <div>
+                        <label for="doctor-select" class="text-sm font-medium text-gray-700">Choose a Doctor</label>
+                        <select id="doctor-select" required class="input-field">
+                            <option value="">Loading doctors...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="schedule-time-input" class="text-sm font-medium text-gray-700">Preferred Date and Time</label>
+                        <input id="schedule-time-input" type="datetime-local" required class="input-field">
+                    </div>
+                    <div>
+                        <label for="consultation-notes" class="text-sm font-medium text-gray-700">Reason for Consultation (Notes)</label>
+                        <textarea id="consultation-notes" rows="4" class="input-field" placeholder="Please describe your symptoms or reason for visit..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button id="close-modal-btn" type="button" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Schedule Now</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
