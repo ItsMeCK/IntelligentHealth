@@ -6,16 +6,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('consultation-details-container');
     const uploadForm = document.getElementById('upload-form');
     const uploadStatus = document.getElementById('upload-status');
-    const aiChatContainer = document.getElementById('ai-chat-container');
-    const aiChatForm = document.getElementById('ai-chat-form');
-    const aiQuestionInput = document.getElementById('ai-question-input');
-    const chatWindow = document.getElementById('chat-window');
     const reportsListContainer = document.getElementById('reports-list-container');
     const noReportsMsg = document.getElementById('no-reports-msg');
     const scribeSection = document.getElementById('scribe-section');
     const recordBtn = document.getElementById('record-btn');
     const recordingStatus = document.getElementById('recording-status');
     const soapNoteDisplay = document.getElementById('soap-note-display');
+    const ddxSection = document.getElementById('ddx-section');
+    const generateDdxBtn = document.getElementById('generate-ddx-btn');
+    const ddxStatus = document.getElementById('ddx-status');
+    const ddxResultDisplay = document.getElementById('ddx-result-display');
+    const patientHistorySection = document.getElementById('patient-history-section');
+    const patientHistoryList = document.getElementById('patient-history-list');
+
+    // Chat Widget Elements
+    const aiChatWidget = document.getElementById('ai-chat-widget');
+    const chatWidgetHeader = document.getElementById('chat-widget-header');
+    const chatWidgetBody = document.getElementById('chat-widget-body');
+    const aiChatForm = document.getElementById('ai-chat-form');
+    const aiQuestionInput = document.getElementById('ai-question-input');
+    const chatWindow = document.getElementById('chat-window');
 
     let mediaRecorder;
     let audioChunks = [];
@@ -34,12 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Conditionally show AI features for doctors
+    // Conditionally show doctor-only features
     if (userRole === 'doctor') {
-        aiChatContainer.classList.remove('hidden');
-        aiChatContainer.classList.add('flex');
         scribeSection.classList.remove('hidden');
+        ddxSection.classList.remove('hidden');
+        aiChatWidget.classList.remove('hidden');
     }
+
+    // Toggle Chat Widget Body
+    chatWidgetHeader.addEventListener('click', () => {
+        chatWidgetBody.classList.toggle('hidden');
+        const icon = chatWidgetHeader.querySelector('i');
+        icon.classList.toggle('rotate-180');
+    });
 
     async function loadConsultationDetails() {
         try {
@@ -67,6 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (consultation.soap_note) {
                 soapNoteDisplay.value = consultation.soap_note;
             }
+            if (consultation.ddx_result) {
+                ddxResultDisplay.textContent = consultation.ddx_result;
+            }
+
+            if (userRole === 'doctor') {
+                loadPatientHistory(consultation.patient.id);
+            }
         } catch (error) {
             container.innerHTML = `<p class="text-red-500">${error.message}</p>`;
         }
@@ -78,14 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('Could not fetch reports.');
             const reports = await response.json();
 
-            reportsListContainer.innerHTML = ''; // Clear previous list
+            reportsListContainer.innerHTML = '';
             if (reports.length === 0) {
-                reportsListContainer.appendChild(noReportsMsg);
+                reportsListContainer.innerHTML = `<p id="no-reports-msg" class="text-gray-500">No reports have been uploaded for this consultation yet.</p>`;
                 return;
             }
 
             const imageExtensions = ['.png', '.jpg', '.jpeg', '.webp'];
-
             reports.forEach(report => {
                 const reportDiv = document.createElement('div');
                 reportDiv.className = 'p-4 border rounded-lg';
@@ -96,28 +119,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let fileDisplayHtml = '';
                 if (isImage) {
-                    fileDisplayHtml = `
-                        <div class="flex items-start space-x-4">
-                            <img src="${fileUrl}" alt="Report thumbnail" class="h-20 w-20 object-cover rounded-md border">
-                            <p class="font-semibold text-gray-800 pt-1">${fileName}</p>
-                        </div>`;
+                    fileDisplayHtml = `<div class="flex items-start space-x-4"><img src="${fileUrl}" alt="Report thumbnail" class="h-20 w-20 object-cover rounded-md border"><p class="font-semibold text-gray-800 pt-1">${fileName}</p></div>`;
                 } else {
-                    fileDisplayHtml = `
-                        <p class="font-semibold text-gray-800 flex items-center">
-                            <i data-lucide="file-text" class="h-4 w-4 mr-2"></i>
-                            ${fileName}
-                        </p>`;
+                    fileDisplayHtml = `<p class="font-semibold text-gray-800 flex items-center"><i data-lucide="file-text" class="h-4 w-4 mr-2"></i>${fileName}</p>`;
                 }
 
                 reportDiv.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        ${fileDisplayHtml}
-                        <a href="${fileUrl}" target="_blank" class="text-sm font-medium text-blue-600 hover:underline">View Full File</a>
-                    </div>
-                    <div class="mt-3 bg-gray-50 p-3 rounded-md">
-                        <p class="text-xs font-semibold text-gray-600 mb-1">AI Summary:</p>
-                        <p class="text-sm text-gray-700 whitespace-pre-wrap">${report.summary || 'Summary not available.'}</p>
-                    </div>
+                    <div class="flex justify-between items-center">${fileDisplayHtml}<a href="${fileUrl}" target="_blank" class="text-sm font-medium text-blue-600 hover:underline">View Full File</a></div>
+                    <div class="mt-3 bg-gray-50 p-3 rounded-md"><p class="text-xs font-semibold text-gray-600 mb-1">AI Summary:</p><p class="text-sm text-gray-700 whitespace-pre-wrap">${report.summary || 'Summary not available.'}</p></div>
                 `;
                 reportsListContainer.appendChild(reportDiv);
             });
@@ -127,24 +136,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadPatientHistory(patientId) {
+        try {
+            const response = await api.getPatientHistory(patientId, token);
+            if (!response.ok) throw new Error('Could not fetch patient history.');
+
+            const history = await response.json();
+            const pastConsultations = history.filter(h => h.id != consultationId);
+
+            if (pastConsultations.length === 0) {
+                patientHistoryList.innerHTML = `<p class="text-sm text-gray-500">No previous consultations found with this patient.</p>`;
+                return;
+            }
+
+            patientHistoryList.innerHTML = '';
+            pastConsultations.forEach(item => {
+                const historyDiv = document.createElement('div');
+                historyDiv.className = 'p-3 border rounded-lg bg-gray-50';
+                historyDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <p class="font-semibold text-gray-800">Consultation #${item.id}</p>
+                        <span class="text-sm text-gray-500">${new Date(item.scheduled_time).toLocaleDateString()}</span>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <p class="font-semibold">Outcome Summary (DDx):</p>
+                        <p class="truncate">${item.ddx_result || 'No diagnosis summary available.'}</p>
+                    </div>
+                    <a href="consultation.html?id=${item.id}" target="_blank" class="text-sm font-medium text-blue-600 hover:underline mt-2 inline-block">View Full Details &rarr;</a>
+                `;
+                patientHistoryList.appendChild(historyDiv);
+            });
+        } catch (error) {
+            patientHistoryList.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+        }
+    }
+
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         uploadStatus.textContent = 'Uploading and processing file... This may take a moment.';
         uploadStatus.className = 'text-blue-600';
-
         const file = e.target['report-file'].files[0];
         if (!file) return;
-
         try {
             const response = await api.uploadReport(consultationId, file, token);
             if (!response.ok) throw new Error('Upload failed.');
-
             await response.json();
             uploadStatus.textContent = `Successfully uploaded and processed ${file.name}!`;
             uploadStatus.className = 'text-green-600';
             uploadForm.reset();
             loadReports();
-
         } catch (error) {
             uploadStatus.textContent = error.message;
             uploadStatus.className = 'text-red-600';
@@ -155,11 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const question = aiQuestionInput.value.trim();
         if (!question) return;
-
         addMessageToChat(question, 'user');
         aiQuestionInput.value = '';
         addTypingIndicator();
-
         try {
             const response = await api.askAI(consultationId, question, token);
             removeTypingIndicator();
@@ -183,6 +221,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    generateDdxBtn.addEventListener('click', async () => {
+        ddxStatus.textContent = 'Generating DDx... This may take a few moments.';
+        ddxStatus.className = 'text-blue-600';
+        generateDdxBtn.disabled = true;
+        try {
+            const response = await api.generateDdx(consultationId, token);
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || 'Failed to generate DDx.');
+            }
+            const data = await response.json();
+            ddxResultDisplay.textContent = data.ddx_result;
+            ddxStatus.textContent = 'DDx report generated successfully!';
+            ddxStatus.className = 'text-green-600';
+        } catch (error) {
+            ddxStatus.textContent = `Error: ${error.message}`;
+            ddxStatus.className = 'text-red-600';
+        } finally {
+            generateDdxBtn.disabled = false;
+        }
+    });
+
     async function startRecording() {
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
@@ -190,14 +250,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 recordBtn.innerHTML = `<i data-lucide="stop-circle" class="h-5 w-5"></i><span>Stop Recording</span>`;
                 lucide.createIcons();
                 recordingStatus.textContent = 'Recording...';
-
                 mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                 audioChunks = [];
-
                 mediaRecorder.ondataavailable = event => {
                     audioChunks.push(event.data);
                 };
-
                 mediaRecorder.onstop = processAudio;
                 mediaRecorder.start();
             })
@@ -224,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         recordingStatus.textContent = 'Processing audio...';
-
         try {
             const response = await api.createNoteFromAudio(consultationId, audioBlob, token);
             if (!response.ok) {

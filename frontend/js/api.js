@@ -47,5 +47,18 @@ const api = {
             headers: { 'Authorization': `Bearer ${token}` },
             body: formData,
         });
+    },
+        // --- New Function for Phase 5 ---
+    generateDdx: (consultationId, token) => {
+        return fetch(`${API_BASE_URL}/consultations/${consultationId}/generate-ddx`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+    },
+    // --- New Function for Patient History ---
+    getPatientHistory: (patientId, token) => {
+        return fetch(`${API_BASE_URL}/patients/${patientId}/history`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
     }
 };

@@ -15,15 +15,14 @@
 
     <!-- Main Application Container -->
     <div id="app-container">
-
         <!-- Login/Registration View -->
         <div id="auth-view" class="min-h-screen flex items-center justify-center bg-gray-100">
-            <!-- Auth form content is unchanged -->
             <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
                 <div class="text-center">
                     <i data-lucide="heart-pulse" class="mx-auto h-12 w-12 text-blue-600"></i>
                     <h2 id="form-title" class="mt-4 text-3xl font-bold text-gray-900">Sign in to your account</h2>
                 </div>
+
                 <form id="login-form" class="space-y-6">
                     <div>
                         <label for="login-email" class="text-sm font-medium text-gray-700">Email address</label>
@@ -35,6 +34,7 @@
                     </div>
                     <button type="submit" class="btn-primary w-full">Sign In</button>
                 </form>
+
                 <form id="register-form" class="hidden space-y-6">
                     <div>
                         <label for="register-name" class="text-sm font-medium text-gray-700">Full Name</label>
@@ -57,6 +57,7 @@
                     </div>
                     <button type="submit" class="btn-primary w-full">Create Account</button>
                 </form>
+
                 <p id="auth-toggle" class="text-center text-sm text-gray-600">
                     Don't have an account? <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Sign up</a>
                 </p>
@@ -64,7 +65,7 @@
             </div>
         </div>
 
-        <!-- Main Dashboard View -->
+        <!-- Main Dashboard View (Updated Structure) -->
         <div id="dashboard-view" class="hidden">
             <header class="bg-white shadow-sm">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -79,7 +80,6 @@
                 </div>
             </header>
             <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <!-- New "Create Consultation" Button -->
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-semibold text-gray-800">Your Consultations</h2>
                     <button id="create-consultation-btn" class="hidden btn-primary flex items-center space-x-2">
@@ -87,8 +87,10 @@
                         <span>New Consultation</span>
                     </button>
                 </div>
-                <div id="consultations-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Consultation cards will be injected here -->
+
+                <!-- New Grouped Layout for Consultations -->
+                <div id="consultations-container" class="space-y-8">
+                    <!-- Groups will be injected here by JavaScript -->
                 </div>
                  <div id="loading-spinner" class="hidden text-center py-10">
                     <i data-lucide="loader-circle" class="animate-spin h-10 w-10 text-blue-600 mx-auto"></i>
@@ -98,7 +100,7 @@
         </div>
     </div>
 
-    <!-- New Modal for Creating Consultation -->
+    <!-- Modal for Creating Consultation -->
     <div id="create-consultation-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
         <div class="relative mx-auto p-8 border w-full max-w-lg shadow-lg rounded-xl bg-white">
             <h3 class="text-2xl font-semibold text-gray-900 mb-6">Schedule a New Consultation</h3>

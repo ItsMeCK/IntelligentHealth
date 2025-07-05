@@ -63,16 +63,19 @@ class ScribeNodes:
         print("--- Node: Generating SOAP Note ---")
         try:
             summary = state['structured_summary']
-            prompt_template = """
-            You are an expert clinical note writer. Based on the following structured information from a consultation, write a clear and concise SOAP note.
+            prompt_template = prompt_template = """
+            You are an expert clinical note writer. Your task is to generate a SOAP note from the provided structured information.
+            The note should be based ONLY on the information given.
+            If a section has no information, explicitly state that (e.g., "No specific symptoms were mentioned by the patient.").
+            Do not make up information or add details not present in the provided context.
 
-            Information:
+            Provided Information:
             - Patient Symptoms: {symptoms}
             - Doctor's Observations: {observations}
             - Prescribed Medications: {medications}
             - Follow-up Instructions: {follow_up}
 
-            Generate the SOAP note with clear headings for Subjective, Objective, Assessment, and Plan.
+            Generate the SOAP note now with clear headings for Subjective, Objective, Assessment, and Plan.
             """
             prompt = ChatPromptTemplate.from_template(prompt_template)
             chain = prompt | llm

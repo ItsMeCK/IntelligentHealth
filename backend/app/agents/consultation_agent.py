@@ -8,7 +8,6 @@ from pydantic.v1 import BaseModel, Field
 import asyncio
 
 from app.core.config import settings
-from app.agents.tools.medical_report_tools import query_detailed_text_reports
 from app.db.session import SessionLocal
 from app.services.consultation_service import ConsultationService
 
@@ -29,7 +28,14 @@ class ConsultationAgent:
 
         async def aquery_detailed_reports(question: str) -> str:
             """Asynchronous wrapper for the detailed query tool."""
-            return await query_detailed_text_reports(consultation_id=self.consultation_id, question=question)
+            try:
+                from app.agents.rag_agent import RAGAgent
+                rag_agent = RAGAgent(consultation_id=self.consultation_id)
+                answer = await rag_agent.answer_question(question)
+                return answer
+            except Exception as e:
+                print(f"Error in detailed query tool: {e}")
+                return "Could not query the detailed text reports. The vector store may not exist for this consultation."
 
         def sync_detailed_query(question: str) -> str:
             """Synchronous wrapper for running the async tool."""

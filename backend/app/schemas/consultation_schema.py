@@ -6,7 +6,6 @@ from typing import Optional, List
 from .user_schema import UserOut
 from app.models.consultation import ConsultationStatus
 
-# --- New Schema ---
 class MedicalReportOut(BaseModel):
     id: int
     file_path: str
@@ -29,8 +28,21 @@ class ConsultationOut(BaseModel):
     scheduled_time: datetime
     status: ConsultationStatus
     notes: Optional[str] = None
-    # --- New Field ---
     reports: List[MedicalReportOut] = []
+    soap_note: Optional[str] = None
+    # --- New Field for Phase 5 ---
+    ddx_result: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+# --- New Schema for Patient History ---
+class ConsultationHistoryOut(BaseModel):
+    """A lean schema for displaying a patient's consultation history."""
+    id: int
+    scheduled_time: datetime
+    doctor: UserOut
+    ddx_result: Optional[str] = None # The DDx serves as a great summary
 
     class Config:
         orm_mode = True

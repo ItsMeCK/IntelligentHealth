@@ -3,7 +3,7 @@
 import os
 import shutil
 from fastapi import UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload # <--- This is the missing import
 from typing import List
 
 from app.models.consultation import Consultation, MedicalReport
@@ -75,3 +75,19 @@ class ConsultationService:
         """
         return self.db.query(MedicalReport).filter(MedicalReport.consultation_id == consultation_id).all()
 
+    # --- New Method for Patient History ---
+    def get_patient_history_with_doctor(self, *, patient_id: int, doctor_id: int) -> List[Consultation]:
+        """
+        Retrieves all past consultations for a specific patient with a specific doctor.
+        It eagerly loads the doctor's information to avoid extra queries.
+        """
+        return (
+            self.db.query(Consultation)
+            .options(joinedload(Consultation.doctor))
+            .filter(
+                Consultation.patient_id == patient_id,
+                Consultation.doctor_id == doctor_id
+            )
+            .order_by(Consultation.scheduled_time.desc())
+            .all()
+        )

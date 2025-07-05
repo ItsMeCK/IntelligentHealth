@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db.base import Base
 from app.db.session import engine
 # --- Updated for Phase 2 ---
-from app.apis.v1 import router_users, router_consultations, router_ai_features
+from app.apis.v1 import router_users, router_consultations, router_ai_features, router_patients
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -37,6 +37,7 @@ app.include_router(router_users.router, prefix="/api/v1", tags=["Users"])
 app.include_router(router_consultations.router, prefix="/api/v1", tags=["Consultations"])
 # --- New for Phase 2 ---
 app.include_router(router_ai_features.router, prefix="/api/v1", tags=["AI Features"])
+app.include_router(router_patients.router, prefix="/api/v1", tags=["Patients"])
 
 
 @app.get("/", tags=["Root"])
