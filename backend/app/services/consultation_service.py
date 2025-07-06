@@ -284,13 +284,23 @@ class ConsultationService:
             # Initialize OpenAI
             llm = ChatOpenAI(model="gpt-4o", temperature=0.3, api_key=settings.OPENAI_API_KEY)
             
-            # Prepare medical data - use SOAP notes only initially
+            # Prepare medical data - include SOAP notes and reports
             medical_data = []
             
             if soap_note and soap_note != "No SOAP note available":
                 medical_data.append(f"SOAP Note: {soap_note}")
             else:
                 return "Please generate SOAP notes first to create a patient summary."
+            
+            # Include report information if available
+            if reports:
+                report_summaries = []
+                for report in reports:
+                    if report.summary and report.summary != "No summary available":
+                        report_summaries.append(f"Report ({report.file_path.split('/')[-1]}): {report.summary}")
+                
+                if report_summaries:
+                    medical_data.append(f"Medical Reports:\n" + "\n".join(report_summaries))
             
             # Create the prompt for AI
             prompt = f"""
@@ -308,6 +318,8 @@ class ConsultationService:
             7. Make it actionable and informative for the patient
             8. Use "you" instead of "patient" to make it personal
             9. Be encouraging and supportive in tone
+            10. If medical reports are mentioned, briefly reference key findings from them
+            11. Mention any important test results or imaging findings in simple terms
 
             Patient Summary:
             """
@@ -370,6 +382,16 @@ class ConsultationService:
         if not has_ai_data and not has_doctor_data:
             return {"has_saved_summary": False}
         
+        # Get reports for this consultation
+        reports = self.get_reports_for_consultation(consultation_id)
+        report_data = []
+        for report in reports:
+            report_data.append({
+                "filename": report.file_path.split('/')[-1],
+                "summary": report.summary or "No summary available",
+                "uploaded_at": report.uploaded_at.strftime("%B %d, %Y")
+            })
+        
         return {
             "has_saved_summary": True,
             "ai_generated_summary": consultation.patient_summary or "",
@@ -379,6 +401,7 @@ class ConsultationService:
             "medications": consultation.medications.split(", ") if consultation.medications else [],
             "recommendations": consultation.recommendations.split(", ") if consultation.recommendations else [],
             "follow_up_notes": consultation.follow_up_notes or "",
+            "reports": report_data,
             "last_updated": consultation.updated_at.isoformat() if hasattr(consultation, 'updated_at') else None
         }
 
