@@ -3,135 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligent Health Platform</title>
+    <title>MedFlow - Intelligent Health Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-50 font-sans">
 
     <!-- Main Application Container -->
     <div id="app-container">
         <!-- Login/Registration View -->
-        <div id="auth-view" class="min-h-screen flex items-center justify-center bg-gray-100">
-            <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+        <div id="auth-view" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+            <div class="w-full max-w-md p-8 space-y-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20">
                 <div class="text-center">
-                    <i data-lucide="heart-pulse" class="mx-auto h-12 w-12 text-blue-600"></i>
-                    <h2 id="form-title" class="mt-4 text-3xl font-bold text-gray-900">Sign in to your account</h2>
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-6">
+                        <i data-lucide="heart-pulse" class="h-8 w-8 text-white"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">MedFlow</h1>
+                    <p class="mt-2 text-gray-600">Intelligent Healthcare Platform</p>
+                    <h2 id="form-title" class="mt-6 text-2xl font-semibold text-gray-900">Welcome back</h2>
                 </div>
 
                 <form id="login-form" class="space-y-6">
-                    <div>
+                    <div class="space-y-2">
                         <label for="login-email" class="text-sm font-medium text-gray-700">Email address</label>
-                        <input id="login-email" name="email" type="email" autocomplete="email" required class="input-field" placeholder="you@example.com">
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <input id="login-email" name="email" type="email" autocomplete="email" required class="input-field pl-10" placeholder="you@example.com">
+                        </div>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label for="login-password" class="text-sm font-medium text-gray-700">Password</label>
-                        <input id="login-password" name="password" type="password" autocomplete="current-password" required class="input-field" placeholder="••••••••">
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <input id="login-password" name="password" type="password" autocomplete="current-password" required class="input-field pl-10" placeholder="••••••••">
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary w-full">Sign In</button>
+                    <button type="submit" class="btn-primary w-full flex items-center justify-center space-x-2">
+                        <i data-lucide="log-in" class="h-5 w-5"></i>
+                        <span>Sign In</span>
+                    </button>
                 </form>
 
                 <form id="register-form" class="hidden space-y-6">
-                    <div>
+                    <div class="space-y-2">
                         <label for="register-name" class="text-sm font-medium text-gray-700">Full Name</label>
-                        <input id="register-name" name="name" type="text" required class="input-field" placeholder="Dr. Stephen Strange">
+                        <div class="relative">
+                            <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <input id="register-name" name="name" type="text" required class="input-field pl-10" placeholder="Dr. Stephen Strange">
+                        </div>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label for="register-email" class="text-sm font-medium text-gray-700">Email address</label>
-                        <input id="register-email" name="email" type="email" required class="input-field" placeholder="you@example.com">
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <input id="register-email" name="email" type="email" required class="input-field pl-10" placeholder="you@example.com">
+                        </div>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label for="register-password" class="text-sm font-medium text-gray-700">Password</label>
-                        <input id="register-password" name="password" type="password" required class="input-field" placeholder="••••••••">
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <input id="register-password" name="password" type="password" required class="input-field pl-10" placeholder="••••••••">
+                        </div>
                     </div>
-                    <div>
+                    <div class="space-y-2">
                         <label for="register-role" class="text-sm font-medium text-gray-700">I am a...</label>
-                        <select id="register-role" name="role" required class="input-field">
-                            <option value="doctor">Doctor</option>
-                            <option value="patient">Patient</option>
-                        </select>
+                        <div class="relative">
+                            <i data-lucide="briefcase" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"></i>
+                            <select id="register-role" name="role" required class="input-field pl-10">
+                                <option value="doctor">Doctor</option>
+                                <option value="patient">Patient</option>
+                            </select>
+                        </div>
                     </div>
-                    <button type="submit" class="btn-primary w-full">Create Account</button>
+                    <button type="submit" class="btn-primary w-full flex items-center justify-center space-x-2">
+                        <i data-lucide="user-plus" class="h-5 w-5"></i>
+                        <span>Create Account</span>
+                    </button>
                 </form>
 
                 <p id="auth-toggle" class="text-center text-sm text-gray-600">
-                    Don't have an account? <a href="#" class="font-medium text-blue-600 hover:text-blue-500">Sign up</a>
+                    Don't have an account? <a href="#" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">Sign up</a>
                 </p>
                 <div id="auth-error" class="text-center text-sm text-red-600 font-medium"></div>
             </div>
         </div>
 
-        <!-- Main Dashboard View (Updated Structure) -->
-        <div id="dashboard-view" class="hidden">
-            <header class="bg-white shadow-sm">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <div class="flex items-center space-x-2">
-                        <i data-lucide="heart-pulse" class="h-8 w-8 text-blue-600"></i>
-                        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <!-- Modern Dashboard View -->
+        <div id="dashboard-view" class="hidden min-h-screen bg-gray-50">
+            <!-- Sidebar Navigation -->
+            <div class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300" id="sidebar">
+                <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <i data-lucide="heart-pulse" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">MedFlow</h1>
                     </div>
-                    <div>
-                        <span id="user-greeting" class="text-gray-600 mr-4"></span>
-                        <button id="logout-btn" class="btn-secondary">Logout</button>
-                    </div>
-                </div>
-            </header>
-            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold text-gray-800">Your Consultations</h2>
-                    <button id="create-consultation-btn" class="hidden btn-primary flex items-center space-x-2">
-                        <i data-lucide="plus-circle" class="h-5 w-5"></i>
-                        <span>New Consultation</span>
+                    <button id="sidebar-toggle" class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <i data-lucide="x" class="h-5 w-5"></i>
                     </button>
                 </div>
+                
+                <nav class="mt-8 px-4 space-y-2">
+                    <a href="#" class="nav-item active" data-section="overview">
+                        <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="consultations">
+                        <i data-lucide="calendar" class="h-5 w-5"></i>
+                        <span>Consultations</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="patients">
+                        <i data-lucide="users" class="h-5 w-5"></i>
+                        <span>Patients</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="reports">
+                        <i data-lucide="file-text" class="h-5 w-5"></i>
+                        <span>Reports</span>
+                    </a>
+                    <a href="#" class="nav-item" data-section="analytics">
+                        <i data-lucide="bar-chart-3" class="h-5 w-5"></i>
+                        <span>Analytics</span>
+                    </a>
+                </nav>
+                
+                <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+                    <div class="flex items-center space-x-3 p-3 rounded-lg bg-gray-50">
+                        <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="user" class="h-4 w-4 text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p id="user-greeting" class="text-sm font-medium text-gray-900 truncate"></p>
+                            <p class="text-xs text-gray-500">Online</p>
+                        </div>
+                        <button id="logout-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md">
+                            <i data-lucide="log-out" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                <!-- New Grouped Layout for Consultations -->
-                <div id="consultations-container" class="space-y-8">
-                    <!-- Groups will be injected here by JavaScript -->
-                </div>
-                 <div id="loading-spinner" class="hidden text-center py-10">
-                    <i data-lucide="loader-circle" class="animate-spin h-10 w-10 text-blue-600 mx-auto"></i>
-                    <p class="mt-2 text-gray-600">Loading consultations...</p>
-                </div>
-            </main>
+            <!-- Main Content Area -->
+            <div class="lg:ml-64">
+                <!-- Top Header -->
+                <header class="bg-white shadow-sm border-b border-gray-200">
+                    <div class="flex items-center justify-between h-16 px-6">
+                        <div class="flex items-center space-x-4">
+                            <button id="mobile-sidebar-toggle" class="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                                <i data-lucide="menu" class="h-5 w-5"></i>
+                            </button>
+                            <h2 id="page-title" class="text-xl font-semibold text-gray-900">Overview</h2>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button id="create-consultation-btn" class="hidden btn-primary flex items-center space-x-2">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <span>New Consultation</span>
+                            </button>
+                            <div class="relative">
+                                <button class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md">
+                                    <i data-lucide="bell" class="h-5 w-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Page Content -->
+                <main class="p-6">
+                    <!-- Dashboard Loading Spinner -->
+                    <div id="dashboard-loading-spinner" class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-70 hidden">
+                        <div class="flex flex-col items-center">
+                            <i data-lucide="loader-circle" class="animate-spin h-12 w-12 text-blue-600"></i>
+                            <p class="mt-4 text-lg text-gray-700 font-semibold">Loading dashboard...</p>
+                        </div>
+                    </div>
+                    <!-- Overview Section -->
+                    <div id="dashboard-content">
+                    <div id="overview-section" class="space-y-6">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-blue-100">
+                                        <i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Total Consultations</p>
+                                        <p id="total-consultations" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-green-100">
+                                        <i data-lucide="users" class="h-6 w-6 text-green-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Active Patients</p>
+                                        <p id="active-patients" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-purple-100">
+                                        <i data-lucide="file-text" class="h-6 w-6 text-purple-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Reports Processed</p>
+                                        <p id="reports-processed" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-orange-100">
+                                        <i data-lucide="clock" class="h-6 w-6 text-orange-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Pending</p>
+                                        <p id="pending-consultations" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts Row -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="chart-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Consultation Trends</h3>
+                                <canvas id="consultation-chart" height="200"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Patient Distribution</h3>
+                                <canvas id="patient-chart" height="200"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Consultations</h3>
+                                <div id="recent-consultations" class="space-y-3">
+                                    <!-- Recent consultations will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Appointments</h3>
+                                <div id="upcoming-appointments" class="space-y-3">
+                                    <!-- Upcoming appointments will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                                <div class="space-y-3">
+                                    <button class="quick-action-btn">
+                                        <i data-lucide="plus" class="h-4 w-4"></i>
+                                        <span>New Consultation</span>
+                                    </button>
+                                    <button class="quick-action-btn">
+                                        <i data-lucide="upload" class="h-4 w-4"></i>
+                                        <span>Upload Report</span>
+                                    </button>
+                                    <button class="quick-action-btn">
+                                        <i data-lucide="search" class="h-4 w-4"></i>
+                                        <span>Search Patients</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consultations Section -->
+                    <div id="consultations-section" class="hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-2xl font-bold text-gray-900">All Consultations</h2>
+                            <div class="flex items-center space-x-4">
+                                <div class="relative">
+                                    <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"></i>
+                                    <input type="text" placeholder="Search consultations..." class="input-field pl-10 w-64">
+                                </div>
+                                <select class="input-field w-48">
+                                    <option>All Status</option>
+                                    <option>Scheduled</option>
+                                    <option>Completed</option>
+                                    <option>Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="consultations-container" class="space-y-4">
+                            <!-- Consultations will be loaded here -->
+                        </div>
+                        
+                        <div id="loading-spinner" class="hidden text-center py-10">
+                            <i data-lucide="loader-circle" class="animate-spin h-10 w-10 text-blue-600 mx-auto"></i>
+                            <p class="mt-2 text-gray-600">Loading consultations...</p>
+                        </div>
+                    </div>
+
+                    <!-- Other sections will be added here -->
+                    </div>
+                </main>
+            </div>
         </div>
     </div>
 
-    <!-- Modal for Creating Consultation -->
-    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-        <div class="relative mx-auto p-8 border w-full max-w-lg shadow-lg rounded-xl bg-white">
-            <h3 class="text-2xl font-semibold text-gray-900 mb-6">Schedule a New Consultation</h3>
-            <form id="create-consultation-form">
-                <div class="space-y-4">
-                    <div>
-                        <label for="doctor-select" class="text-sm font-medium text-gray-700">Choose a Doctor</label>
-                        <select id="doctor-select" required class="input-field">
-                            <option value="">Loading doctors...</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="schedule-time-input" class="text-sm font-medium text-gray-700">Preferred Date and Time</label>
-                        <input id="schedule-time-input" type="datetime-local" required class="input-field">
-                    </div>
-                    <div>
-                        <label for="consultation-notes" class="text-sm font-medium text-gray-700">Reason for Consultation (Notes)</label>
-                        <textarea id="consultation-notes" rows="4" class="input-field" placeholder="Please describe your symptoms or reason for visit..."></textarea>
-                    </div>
+    <!-- Enhanced Modal for Creating Consultation -->
+    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-900">Schedule New Consultation</h3>
+                    <button id="close-modal-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                        <i data-lucide="x" class="h-5 w-5"></i>
+                    </button>
                 </div>
-                <div class="mt-8 flex justify-end space-x-4">
-                    <button id="close-modal-btn" type="button" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Schedule Now</button>
+            </div>
+            <form id="create-consultation-form" class="p-6 space-y-6">
+                <div id="doctor-modal-fields">
+                    <!-- Doctor/Patient-specific fields will be injected by JS -->
+                </div>
+                <div class="space-y-2">
+                    <label for="schedule-time-input" class="text-sm font-medium text-gray-700">Date & Time</label>
+                    <input id="schedule-time-input" type="datetime-local" required class="input-field">
+                </div>
+                <div class="space-y-2">
+                    <label for="consultation-notes" class="text-sm font-medium text-gray-700">Notes</label>
+                    <textarea id="consultation-notes" rows="4" class="input-field" placeholder="Describe symptoms or reason for visit..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button id="cancel-modal-btn" type="button" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Schedule Consultation</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
+    <script src="js/api.js?v=2"></script>
     <script src="js/auth.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/dashboard.js?v=2"></script>
     <script>
         lucide.createIcons();
     </script>

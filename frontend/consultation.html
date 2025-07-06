@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consultation Details - Intelligent Health Platform</title>
+    <title>Consultation Details - MedFlow</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom animations for chat */
         @keyframes fadeIn {
@@ -148,72 +149,434 @@
             opacity: 0.6;
             margin-top: 4px;
         }
+
+        /* Minimized chat widget */
+        #ai-chat-widget.minimized {
+            width: 60px !important;
+            height: 60px !important;
+            min-height: 60px !important;
+            border-radius: 50% !important;
+            overflow: hidden !important;
+        }
+
+        #ai-chat-widget.minimized .bg-white {
+            border-radius: 50% !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #ai-chat-widget.minimized #chat-widget-header {
+            border-radius: 50% !important;
+            border: none !important;
+            padding: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        #ai-chat-widget.minimized #chat-widget-header .flex {
+            display: none !important;
+        }
+
+        #ai-chat-widget.minimized #chat-widget-header i[data-lucide="chevron-up"] {
+            display: none !important;
+        }
+
+        #ai-chat-widget.minimized #chat-widget-header i[data-lucide="chevron-down"] {
+            display: block !important;
+            font-size: 24px !important;
+        }
+
+        #ai-chat-widget.minimized #chat-widget-body {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        #ai-chat-widget:not(.minimized) {
+            width: 384px !important;
+            height: 70vh !important;
+            border-radius: 16px !important;
+        }
+
+        #ai-chat-widget:not(.minimized) #chat-widget-body {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+
+        #ai-chat-widget:not(.minimized) #chat-widget-header {
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        /* Enhanced audio recording styles */
+        .recording-indicator {
+            animation: pulse 1.5s infinite;
+        }
+
+        .btn-recording {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-recording:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Enhanced SOAP note display */
+        #soap-note-display {
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status-scheduled { background-color: #fef3c7; color: #92400e; }
+        .status-in-progress { background-color: #dbeafe; color: #1e40af; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+        /* Floating Action Button */
+        #main-fab {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #main-fab:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        #quick-actions-menu {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Enhanced button hover effects */
+        #quick-ddx-btn:hover, #quick-record-btn:hover, #quick-upload-btn:hover {
+            transform: translateX(-4px);
+            transition: transform 0.2s ease-out;
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
 
-    <header class="bg-white shadow-sm">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center space-x-2">
-                <i data-lucide="heart-pulse" class="h-8 w-8 text-blue-600"></i>
-                <h1 class="text-2xl font-bold text-gray-900">Consultation Details</h1>
-            </a>
-            <a href="index.html" class="btn-secondary">Back to Dashboard</a>
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="heart-pulse" class="h-5 w-5 text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">MedFlow</h1>
+                </a>
+                <div class="hidden md:block w-px h-6 bg-gray-300"></div>
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="calendar" class="h-5 w-5 text-gray-400"></i>
+                    <span class="text-sm font-medium text-gray-600">Consultation</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="index.html" class="btn-secondary flex items-center space-x-2">
+                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- Main content area -->
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        <div id="consultation-details-container" class="bg-white p-8 rounded-xl shadow-lg"></div>
-        <div id="ddx-section" class="bg-white p-8 rounded-xl shadow-lg hidden">
-             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">Differential Diagnosis (DDx)</h3>
-                <button id="generate-ddx-btn" class="btn-secondary text-sm">
-                    <i data-lucide="brain-circuit" class="inline-block h-4 w-4 mr-1"></i>
-                    Generate
-                </button>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Consultation Details -->
+        <div id="consultation-details-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8"></div>
+
+        <!-- Doctor Features Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- DDx Section -->
+            <div id="ddx-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <i data-lucide="brain-circuit" class="h-6 w-6 text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">Differential Diagnosis</h3>
+                    </div>
+                    <button id="generate-ddx-btn" class="btn-primary flex items-center space-x-2">
+                        <i data-lucide="zap" class="h-4 w-4"></i>
+                        <span>Generate DDx</span>
+                    </button>
+                </div>
+                <div id="ddx-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+                <div id="ddx-result-display" class="h-80 bg-gray-50 rounded-xl border border-gray-200 overflow-y-auto">
+                    <div class="p-4">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <i data-lucide="lightbulb" class="h-5 w-5 text-yellow-500"></i>
+                            <span class="font-medium text-gray-900">AI-Powered Diagnosis</span>
+                        </div>
+                        <div class="prose prose-sm max-w-none">
+                            <p class="text-gray-600">Click "Generate DDx" to get an AI-powered differential diagnosis based on all available patient data and medical reports.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="ddx-status" class="text-sm font-medium text-gray-600 mb-2"></div>
-            <div id="ddx-result-display" class="prose prose-sm max-w-none p-4 bg-gray-50 rounded-md whitespace-pre-wrap">Click "Generate" to get an AI-powered differential diagnosis based on all available patient data.</div>
-        </div>
-        <div id="scribe-section" class="bg-white p-8 rounded-xl shadow-lg hidden">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ambient Scribe (Doctor View)</h3>
-            <div class="flex items-center space-x-4 mb-4">
-                <button id="record-btn" class="btn-primary flex items-center space-x-2">
-                    <i data-lucide="mic" class="h-5 w-5"></i>
-                    <span>Start Recording</span>
-                </button>
-                <p id="recording-status" class="text-sm font-medium text-gray-600"></p>
+
+            <!-- Scribe Section -->
+            <div id="scribe-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i data-lucide="mic" class="h-6 w-6 text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">Ambient Scribe</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                            <i data-lucide="zap" class="h-3 w-3 inline mr-1"></i>
+                            AI-Powered
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Recording Controls -->
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <button id="record-btn" class="btn-primary flex items-center space-x-2">
+                                <i data-lucide="mic" class="h-5 w-5"></i>
+                                <span>Start Recording</span>
+                            </button>
+                            <div id="recording-indicator" class="hidden flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                <span class="text-sm font-medium text-red-600">Recording...</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="clear-note-btn" class="btn-secondary flex items-center space-x-2">
+                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                <span>Clear</span>
+                            </button>
+                            <button id="save-note-btn" class="btn-primary flex items-center space-x-2">
+                                <i data-lucide="save" class="h-4 w-4"></i>
+                                <span>Save</span>
+                            </button>
+                        </div>
+                    </div>
+                    <p id="recording-status" class="text-sm font-medium text-gray-600">Click "Start Recording" to begin capturing consultation audio for SOAP note generation.</p>
+                </div>
+                
+                <!-- SOAP Note Display -->
+                <div class="flex-1 flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-sm font-medium text-gray-700">Generated SOAP Note</label>
+                        <div class="flex items-center space-x-2">
+                            <span id="note-status" class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                Ready
+                            </span>
+                        </div>
+                    </div>
+                    <textarea id="soap-note-display" class="h-80 input-field resize-none font-mono text-sm" placeholder="Generated SOAP note will appear here after processing..."></textarea>
+                    <div class="flex items-center space-x-2 text-xs text-gray-500 mt-2">
+                        <i data-lucide="info" class="h-3 w-3"></i>
+                        <span>Speak clearly during recording for best results. The AI will generate a structured SOAP note from your audio.</span>
+                    </div>
+                </div>
             </div>
-            <textarea id="soap-note-display" rows="15" class="input-field" placeholder="Generated SOAP note will appear here after processing..."></textarea>
         </div>
-        <div class="bg-white p-8 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Patient History with You</h3>
-            <div id="patient-history-list" class="space-y-4 max-h-96 overflow-y-auto"></div>
+
+        <!-- Patient History -->
+        <div id="patient-history-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i data-lucide="history" class="h-6 w-6 text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">Patient History</h3>
+            </div>
+            <div id="patient-history-list" class="space-y-4">
+                <!-- Patient history will be loaded here -->
+            </div>
         </div>
-        <div class="bg-white p-8 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Uploaded Reports</h3>
-            <div id="reports-list-container" class="space-y-4"></div>
-        </div>
-        <div class="bg-white p-8 rounded-xl shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Upload New Report</h3>
-            <form id="upload-form">
-                <input type="file" id="report-file" required class="input-file" accept=".pdf,.docx,.png,.jpg,.jpeg">
-                <button type="submit" class="mt-4 btn-primary">Upload & Process File</button>
+
+        <!-- Reports Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-orange-100 rounded-lg">
+                        <i data-lucide="file-text" class="h-6 w-6 text-orange-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">Medical Reports</h3>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="btn-secondary flex items-center space-x-2">
+                        <i data-lucide="upload" class="h-4 w-4"></i>
+                        <span>Upload Report</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Upload Form -->
+            <form id="upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <div class="text-center">
+                    <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Medical Report</h4>
+                    <p class="text-sm text-gray-600 mb-4">Drag and drop files here, or click to select</p>
+                    <input type="file" id="report-file" required class="input-field" accept=".pdf,.docx,.png,.jpg,.jpeg" />
+                    <button type="submit" class="btn-primary mt-4">Upload & Process</button>
+                </div>
+                <div id="upload-status" class="mt-4 text-sm font-medium"></div>
             </form>
-            <div id="upload-status" class="mt-4 text-sm font-medium"></div>
+            
+            <!-- Reports List -->
+            <div id="reports-list-container" class="space-y-4">
+                <!-- Reports will be loaded here -->
+            </div>
+
+            <!-- Report Analysis Section -->
+            <div id="report-analysis-section" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <i data-lucide="brain" class="h-6 w-6 text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">AI Report Analysis</h3>
+                    </div>
+                    <button id="analyze-reports-btn" class="btn-primary flex items-center space-x-2">
+                        <i data-lucide="zap" class="h-4 w-4"></i>
+                        <span>Analyze Reports</span>
+                    </button>
+                </div>
+                
+                <div id="analysis-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+                
+                <!-- Analysis Results -->
+                <div id="analysis-results" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Key Findings -->
+                        <div class="bg-white rounded-xl p-4 border border-gray-200">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                                <i data-lucide="target" class="h-4 w-4 text-blue-600"></i>
+                                <span>Key Findings</span>
+                            </h4>
+                            <div id="key-findings" class="text-sm text-gray-700 space-y-2">
+                                <p class="text-gray-500">Click "Analyze Reports" to generate key findings</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Abnormal Values -->
+                        <div class="bg-white rounded-xl p-4 border border-gray-200">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                                <i data-lucide="alert-triangle" class="h-4 w-4 text-orange-600"></i>
+                                <span>Abnormal Values</span>
+                            </h4>
+                            <div id="abnormal-values" class="text-sm text-gray-700 space-y-2">
+                                <p class="text-gray-500">Click "Analyze Reports" to identify abnormal values</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comprehensive Summary -->
+                    <div class="bg-white rounded-xl p-4 border border-gray-200">
+                        <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                            <i data-lucide="file-text" class="h-4 w-4 text-green-600"></i>
+                            <span>Comprehensive Summary</span>
+                        </h4>
+                        <div id="comprehensive-summary" class="text-sm text-gray-700 prose prose-sm max-w-none">
+                            <p class="text-gray-500">Click "Analyze Reports" to generate a comprehensive summary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- New Floating AI Chat Widget -->
-    <div id="ai-chat-widget" class="fixed bottom-5 right-5 w-96 hidden z-50">
-        <div class="bg-white rounded-xl shadow-2xl flex flex-col h-[60vh]">
-            <div id="chat-widget-header" class="p-4 border-b cursor-pointer bg-blue-600 text-white rounded-t-xl hover:bg-blue-700 transition-colors">
-                <h3 class="text-lg font-semibold flex items-center justify-between">
-                    <span>AI Report Analysis</span>
-                    <i data-lucide="chevron-up" class="h-5 w-5 transition-transform duration-300"></i>
-                </h3>
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <div class="flex flex-col items-end space-y-4">
+            <!-- Quick Actions Menu -->
+            <div id="quick-actions-menu" class="hidden bg-white rounded-2xl shadow-2xl p-4 border border-gray-200">
+                <div class="space-y-3">
+                    <button id="quick-ddx-btn" class="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="brain-circuit" class="h-4 w-4 text-purple-600"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Generate DDx</span>
+                    </button>
+                    <button id="quick-record-btn" class="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="mic" class="h-4 w-4 text-green-600"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Record Audio</span>
+                    </button>
+                    <button id="quick-upload-btn" class="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="upload" class="h-4 w-4 text-orange-600"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Upload Report</span>
+                    </button>
+                    <button id="quick-analyze-btn" class="flex items-center space-x-3 w-full p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="brain" class="h-4 w-4 text-blue-600"></i>
+                        </div>
+                        <span class="text-sm font-medium text-gray-700">Analyze Reports</span>
+                    </button>
+                </div>
             </div>
+            
+            <!-- Main FAB -->
+            <button id="main-fab" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-110">
+                <i data-lucide="plus" class="h-6 w-6"></i>
+            </button>
+        </div>
+    </div>
+
+
+
+    <!-- Enhanced Floating AI Chat Widget -->
+    <div id="ai-chat-widget" class="fixed bottom-6 right-6 w-96 z-50 minimized cursor-pointer" onclick="if(this.classList.contains('minimized')) { this.dispatchEvent(new Event('toggle-chat')); }">
+        <div class="bg-white rounded-2xl shadow-2xl flex flex-col h-[70vh] border border-gray-200">
+            <!-- Chat Header -->
+            <div id="chat-widget-header" class="p-4 border-b border-gray-200 cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 relative z-10" style="pointer-events: auto;">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i data-lucide="bot" class="h-5 w-5 text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold">AI Report Analysis</h3>
+                            <p class="text-xs text-blue-100">Ask questions about medical reports</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-down" class="h-5 w-5 transition-transform duration-300"></i>
+                </div>
+            </div>
+            
+            <!-- Chat Body -->
             <div id="chat-widget-body" class="flex-1 flex flex-col transition-all duration-300 ease-in-out">
                 <div id="chat-window" class="flex-1 p-4 overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
                     <div class="flex justify-start mb-4 animate-fade-in">
@@ -232,18 +595,25 @@
                         </div>
                     </div>
                 </div>
-                <div class="p-4 border-t bg-gray-50">
-                    <form id="ai-chat-form" class="flex items-center space-x-2">
-                        <input id="ai-question-input" type="text" placeholder="Ask a question..." class="input-field flex-1" autocomplete="off">
-                        <button type="submit" class="btn-primary !p-3"><i data-lucide="send-horizontal" class="h-5 w-5"></i></button>
+                
+                <!-- Chat Input -->
+                <div class="p-4 border-t border-gray-200 bg-gray-50">
+                    <form id="ai-chat-form" class="flex items-center space-x-3">
+                        <div class="flex-1 relative">
+                            <input id="ai-question-input" type="text" placeholder="Ask a question about the reports..." class="input-field pr-12" autocomplete="off">
+                            <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                                <i data-lucide="send-horizontal" class="h-5 w-5"></i>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/consultation_view.js"></script>
+    <script src="js/api.js?v=10"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/consultation_view.js?v=10"></script>
     <script>
         lucide.createIcons();
     </script>

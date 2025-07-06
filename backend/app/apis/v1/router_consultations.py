@@ -1,6 +1,6 @@
 # backend/app/apis/v1/router_consultations.py
 
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Body
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -68,3 +68,23 @@ def upload_medical_report(
         file=file
     )
     return report
+
+@router.patch("/consultations/{consultation_id}/status", response_model=ConsultationOut)
+def update_consultation_status(
+    consultation_id: int,
+    status_body: dict = Body(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    new_status = status_body.get("status")
+    if not new_status:
+        raise HTTPException(status_code=400, detail="Missing status value.")
+    consultation_service = ConsultationService(db)
+    updated = consultation_service.update_consultation_status(consultation_id, new_status, current_user.id)
+    if updated is None:
+        # Not found or not allowed
+        consultation = consultation_service.get_consultation_by_id(consultation_id)
+        if not consultation:
+            raise HTTPException(status_code=404, detail="Consultation not found.")
+        raise HTTPException(status_code=403, detail="Not allowed to update status.")
+    return updated

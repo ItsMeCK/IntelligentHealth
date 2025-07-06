@@ -79,3 +79,15 @@ def get_all_doctors(
     user_service = UserService(db)
     doctors = user_service.get_all_doctors()
     return doctors
+
+@router.get("/users/patients", response_model=List[UserOut])
+def get_all_patients(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get a list of all patients.
+    """
+    user_service = UserService(db)
+    patients = user_service.get_all_patients()
+    return patients

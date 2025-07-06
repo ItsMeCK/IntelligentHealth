@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             localStorage.setItem('accessToken', data.access_token);
             await fetchAndStoreCurrentUser(data.access_token);
-            showDashboard();
+            window.location.reload();
         } catch (error) {
             authError.textContent = error.message;
         }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const loginData = await loginResponse.json();
             localStorage.setItem('accessToken', loginData.access_token);
             await fetchAndStoreCurrentUser(loginData.access_token);
-            showDashboard();
+            window.location.reload();
         } catch (error) {
             authError.textContent = error.message;
         }
@@ -94,6 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('userName', user.full_name);
         // --- Store user role ---
         localStorage.setItem('userRole', user.role);
+        // --- Store full user object for dashboard.js ---
+        localStorage.setItem('user', JSON.stringify(user));
     }
 
     function showDashboard() {

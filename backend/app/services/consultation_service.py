@@ -91,3 +91,15 @@ class ConsultationService:
             .order_by(Consultation.scheduled_time.desc())
             .all()
         )
+
+    def update_consultation_status(self, consultation_id: int, new_status: str, user_id: int) -> Consultation:
+        consultation = self.get_consultation_by_id(consultation_id)
+        if not consultation:
+            return None
+        # Only allow doctor or patient to update
+        if user_id not in [consultation.doctor_id, consultation.patient_id]:
+            return None
+        consultation.status = new_status
+        self.db.commit()
+        self.db.refresh(consultation)
+        return consultation

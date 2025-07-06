@@ -48,3 +48,9 @@ class UserService:
         """
         return self.db.query(User).filter(User.role == UserRole.DOCTOR).all()
 
+    def get_all_patients(self) -> List[User]:
+        """
+        Retrieves a list of all users with the 'patient' role.
+        """
+        return self.db.query(User).filter(User.role == UserRole.PATIENT).all()
+
