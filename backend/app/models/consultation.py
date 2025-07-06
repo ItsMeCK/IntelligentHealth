@@ -25,6 +25,11 @@ class Consultation(Base):
     soap_note = Column(Text, nullable=True)
     # --- New Field for Phase 5 ---
     ddx_result = Column(Text, nullable=True)  # To store the AI-generated Differential Diagnosis
+    # --- New Field for Patient Summary ---
+    patient_summary = Column(Text, nullable=True)  # To store the patient summary
+    medications = Column(Text, nullable=True)  # To store prescribed medications
+    recommendations = Column(Text, nullable=True)  # To store doctor recommendations
+    follow_up_notes = Column(Text, nullable=True)  # To store follow-up instructions
 
     patient = relationship("User", foreign_keys=[patient_id])
     doctor = relationship("User", foreign_keys=[doctor_id])

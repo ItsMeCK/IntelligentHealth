@@ -101,6 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDashboard() {
         authView.classList.add('hidden');
         dashboardView.classList.remove('hidden');
-        loadDashboardData();
+        // loadDashboardData() is called by dashboard.js when it initializes
     }
 });

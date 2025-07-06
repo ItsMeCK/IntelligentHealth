@@ -48,6 +48,8 @@ class DiagnosisNodes:
 
         Analyze all the information, including patient notes, SOAP notes from audio, and summaries of all uploaded reports (text and images).
 
+        CRITICAL: Your response must be EXACTLY 10 lines or fewer. Be concise and focused.
+
         Structure your response as follows:
         1.  **Primary Diagnosis:** State the most likely diagnosis.
         2.  **Differential Diagnoses:** List at least two other possible diagnoses, ranked from most to least likely.
@@ -61,7 +63,13 @@ class DiagnosisNodes:
         chain = prompt | llm
 
         ddx_report = chain.invoke({"context": context})
-        return {"ddx_result": ddx_report.content}
+        
+        # Limit to 10 lines maximum
+        content = ddx_report.content
+        lines = content.split('\n')
+        limited_content = '\n'.join(lines[:10])
+        
+        return {"ddx_result": limited_content}
 
     def save_ddx_result(self, state):
         """Saves the final DDx report to the database."""

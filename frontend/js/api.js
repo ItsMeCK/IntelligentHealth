@@ -1,5 +1,5 @@
 // frontend/js/api.js
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 const api = {
     // Debug function to check if API is loaded
@@ -33,7 +33,12 @@ const api = {
         // Handle both new and old API formats
         if (formDataOrConsultationId instanceof FormData) {
             // New format: uploadReport(formData, token)
-            return fetch(`${API_BASE_URL}/consultations/upload-report`, { 
+            // Extract consultation_id from formData
+            const consultationId = formDataOrConsultationId.get('consultation_id');
+            if (!consultationId) {
+                throw new Error('consultation_id is required in formData');
+            }
+            return fetch(`${API_BASE_URL}/consultations/${consultationId}/upload-report`, { 
                 method: 'POST', 
                 headers: { 'Authorization': `Bearer ${fileOrToken}` }, 
                 body: formDataOrConsultationId, 
@@ -164,6 +169,43 @@ const api = {
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({ status })
+        });
+    },
+
+    // --- Patient Summary Functions ---
+    generatePatientSummary: (consultationId, token) => {
+        return fetch(`${API_BASE_URL}/consultations/${consultationId}/generate-summary`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    },
+
+    updatePatientSummary: (consultationId, summaryData, token) => {
+        return fetch(`${API_BASE_URL}/consultations/${consultationId}/update-summary`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(summaryData)
+        });
+    },
+
+    getSummaryPDF: (consultationId, token) => {
+        return fetch(`${API_BASE_URL}/consultations/${consultationId}/summary-pdf`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    },
+
+    getSavedSummary: (consultationId, token) => {
+        return fetch(`${API_BASE_URL}/consultations/${consultationId}/saved-summary`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         });
     },
     getPatients: (token) => {

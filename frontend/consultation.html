@@ -457,6 +457,117 @@
                 <!-- Reports will be loaded here -->
             </div>
 
+            <!-- Patient Summary Section -->
+            <div id="patient-summary-section" class="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i data-lucide="file-text" class="h-6 w-6 text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">Patient Summary</h3>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button id="generate-summary-btn" class="btn-primary flex items-center space-x-2">
+                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            <span>Generate Summary</span>
+                        </button>
+                        <button id="download-pdf-btn" class="btn-secondary flex items-center space-x-2 hidden">
+                            <i data-lucide="download" class="h-4 w-4"></i>
+                            <span>Download PDF</span>
+                        </button>
+                        <button id="print-summary-btn" class="btn-secondary flex items-center space-x-2 hidden">
+                            <i data-lucide="printer" class="h-4 w-4"></i>
+                            <span>Print</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="summary-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+                
+                <!-- Summary Content -->
+                <div id="summary-content" class="hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Summary Display -->
+                        <div class="space-y-4">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                                    <i data-lucide="user" class="h-5 w-5 text-green-600"></i>
+                                    <span>Patient Summary</span>
+                                </h4>
+                                <div id="summary-text" class="text-sm text-gray-700 prose prose-sm max-w-none">
+                                    <!-- Summary will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Doctor Edit Panel (only visible to doctors) -->
+                        <div id="doctor-edit-panel" class="space-y-4 hidden">
+                            <div class="bg-white rounded-xl p-6 border border-gray-200">
+                                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                                    <i data-lucide="edit-3" class="h-5 w-5 text-blue-600"></i>
+                                    <span>Edit Summary</span>
+                                </h4>
+                                
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-700">Doctor's Summary</label>
+                                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                                            <p class="text-xs text-blue-600 mb-2">💡 Doctor's summary based on SOAP notes</p>
+                                            <textarea id="ai-summary-edit" rows="4" class="input-field-modern w-full" placeholder="Doctor's summary will appear here..."></textarea>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-700">Doctor's Additional Notes</label>
+                                        <textarea id="summary-edit" rows="4" class="input-field-modern mt-2" placeholder="Add your professional insights and recommendations..."></textarea>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-700">Medications</label>
+                                        <div id="medications-container" class="space-y-2 mt-2">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" class="medication-input input-field-modern flex-1" placeholder="Enter medication name and dosage">
+                                                <button type="button" class="add-medication-btn btn-secondary-modern px-3 py-2">
+                                                    <i data-lucide="plus" class="h-4 w-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-700">Recommendations</label>
+                                        <div id="recommendations-container" class="space-y-2 mt-2">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="text" class="recommendation-input input-field-modern flex-1" placeholder="Enter recommendation">
+                                                <button type="button" class="add-recommendation-btn btn-secondary-modern px-3 py-2">
+                                                    <i data-lucide="plus" class="h-4 w-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-700">Follow-up Instructions</label>
+                                        <textarea id="follow-up-edit" rows="4" class="input-field-modern mt-2" placeholder="Enter follow-up instructions..."></textarea>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-3 pt-4">
+                                        <button id="save-summary-btn" class="btn-primary-modern">
+                                            <i data-lucide="save" class="h-4 w-4 mr-2"></i>
+                                            <span>Save Changes</span>
+                                        </button>
+                                        <button id="cancel-edit-btn" class="btn-secondary-modern">
+                                            <i data-lucide="x" class="h-4 w-4 mr-2"></i>
+                                            <span>Cancel</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Report Analysis Section -->
             <div id="report-analysis-section" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
                 <div class="flex items-center justify-between mb-6">
@@ -611,9 +722,9 @@
         </div>
     </div>
 
-    <script src="js/api.js?v=10"></script>
+    <script src="js/api.js?v=12"></script>
     <script src="js/auth.js"></script>
-    <script src="js/consultation_view.js?v=10"></script>
+    <script src="js/consultation_view.js?v=21"></script>
     <script>
         lucide.createIcons();
     </script>

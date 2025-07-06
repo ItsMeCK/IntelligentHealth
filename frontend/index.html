@@ -263,7 +263,7 @@
                             <div class="activity-card">
                                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                                 <div class="space-y-3">
-                                    <button class="quick-action-btn">
+                                    <button class="quick-action-btn" onclick="document.getElementById('create-consultation-btn').click()">
                                         <i data-lucide="plus" class="h-4 w-4"></i>
                                         <span>New Consultation</span>
                                     </button>
@@ -315,40 +315,223 @@
         </div>
     </div>
 
-    <!-- Enhanced Modal for Creating Consultation -->
-    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
+    <!-- Modern Consultation Creation Modal -->
+    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+            <!-- Modal Header -->
+            <div class="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sm:p-8 flex-shrink-0">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-xl font-semibold text-gray-900">Schedule New Consultation</h3>
-                    <button id="close-modal-btn" class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="calendar-plus" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">New Consultation</h3>
+                            <p class="text-blue-100 text-sm mt-1">Schedule a new medical consultation</p>
+                        </div>
+                    </div>
+                    <button id="close-modal-btn" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-all duration-200">
                         <i data-lucide="x" class="h-5 w-5"></i>
                     </button>
                 </div>
+                
+                <!-- Progress Steps -->
+                <div class="mt-6 flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="step-indicator active" data-step="1">
+                            <span class="step-number">1</span>
+                        </div>
+                        <span class="step-label text-sm font-medium">Details</span>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-white/30 rounded-full">
+                        <div class="progress-bar h-full bg-white rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="step-indicator" data-step="2">
+                            <span class="step-number">2</span>
+                        </div>
+                        <span class="step-label text-sm font-medium">Schedule</span>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-white/30 rounded-full">
+                        <div class="progress-bar h-full bg-white rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="step-indicator" data-step="3">
+                            <span class="step-number">3</span>
+                        </div>
+                        <span class="step-label text-sm font-medium">Confirm</span>
+                    </div>
+                </div>
             </div>
-            <form id="create-consultation-form" class="p-6 space-y-6">
-                <div id="doctor-modal-fields">
-                    <!-- Doctor/Patient-specific fields will be injected by JS -->
+
+            <!-- Modal Body -->
+            <div class="p-4 sm:p-8 flex-1 overflow-y-auto">
+                <form id="create-consultation-form" class="space-y-6 sm:space-y-8">
+                    <!-- Step 1: Consultation Details -->
+                    <div id="step-1" class="step-content active">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                        <i data-lucide="user" class="h-4 w-4 text-blue-600"></i>
+                                        <span>Consultation Type</span>
+                                    </label>
+                                    <select id="consultation-type" class="input-field-modern" required>
+                                        <option value="">Select consultation type...</option>
+                                        <option value="general">General Checkup</option>
+                                        <option value="specialist">Specialist Consultation</option>
+                                        <option value="followup">Follow-up Visit</option>
+                                        <option value="emergency">Emergency Visit</option>
+                                        <option value="routine">Routine Examination</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                        <i data-lucide="clock" class="h-4 w-4 text-blue-600"></i>
+                                        <span>Duration</span>
+                                    </label>
+                                    <select id="consultation-duration" class="input-field-modern">
+                                        <option value="30">30 minutes</option>
+                                        <option value="45" selected>45 minutes</option>
+                                        <option value="60">1 hour</option>
+                                        <option value="90">1.5 hours</option>
+                                        <option value="120">2 hours</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="participant-fields">
+                                <!-- Dynamic fields based on user role -->
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                    <i data-lucide="message-square" class="h-4 w-4 text-blue-600"></i>
+                                    <span>Reason for Visit</span>
+                                </label>
+                                <textarea id="consultation-reason" rows="4" class="input-field-modern" placeholder="Describe the symptoms, concerns, or reason for this consultation..."></textarea>
+                                <p class="text-xs text-gray-500 mt-1">This helps us prepare better for your visit</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                    <i data-lucide="file-text" class="h-4 w-4 text-blue-600"></i>
+                                    <span>Additional Notes</span>
+                                </label>
+                                <textarea id="consultation-notes" rows="3" class="input-field-modern" placeholder="Any additional information, special requirements, or notes..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Scheduling -->
+                    <div id="step-2" class="step-content hidden">
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                        <i data-lucide="calendar" class="h-4 w-4 text-blue-600"></i>
+                                        <span>Preferred Date</span>
+                                    </label>
+                                    <input id="preferred-date" type="date" class="input-field-modern" required>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                        <i data-lucide="clock" class="h-4 w-4 text-blue-600"></i>
+                                        <span>Preferred Time</span>
+                                    </label>
+                                    <input id="preferred-time" type="time" class="input-field-modern" required>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                    <i data-lucide="calendar-days" class="h-4 w-4 text-blue-600"></i>
+                                    <span>Available Time Slots</span>
+                                </label>
+                                <div id="time-slots" class="grid grid-cols-3 gap-3">
+                                    <!-- Time slots will be populated by JS -->
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                    <i data-lucide="map-pin" class="h-4 w-4 text-blue-600"></i>
+                                    <span>Location</span>
+                                </label>
+                                <select id="consultation-location" class="input-field-modern">
+                                    <option value="clinic">Main Clinic</option>
+                                    <option value="video">Video Consultation</option>
+                                    <option value="home">Home Visit</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div id="step-3" class="step-content hidden">
+                        <div class="space-y-6">
+                            <div class="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                                <h4 class="text-lg font-semibold text-blue-900 mb-4 flex items-center space-x-2">
+                                    <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                    <span>Consultation Summary</span>
+                                </h4>
+                                <div id="consultation-summary" class="space-y-3 text-sm">
+                                    <!-- Summary will be populated by JS -->
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                                    <input type="checkbox" id="confirm-terms" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                    <label for="confirm-terms" class="text-sm text-gray-700">
+                                        I confirm that all information provided is accurate and I agree to the consultation terms
+                                    </label>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                                    <input type="checkbox" id="send-reminder" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" checked>
+                                    <label for="send-reminder" class="text-sm text-gray-700">
+                                        Send me a reminder 24 hours before the consultation
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-4 sm:px-8 py-4 sm:py-6 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <button id="cancel-modal-btn" type="button" class="btn-secondary-modern">
+                        <i data-lucide="x" class="h-4 w-4 mr-2"></i>
+                        Cancel
+                    </button>
+                    
+                    <div class="flex items-center space-x-3">
+                        <button id="prev-step-btn" type="button" class="btn-secondary-modern hidden">
+                            <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i>
+                            Previous
+                        </button>
+                        <button id="next-step-btn" type="button" class="btn-primary-modern">
+                            <span>Next Step</span>
+                            <i data-lucide="arrow-right" class="h-4 w-4 ml-2"></i>
+                        </button>
+                        <button id="submit-consultation-btn" type="submit" class="btn-primary-modern hidden">
+                            <i data-lucide="check" class="h-4 w-4 mr-2"></i>
+                            <span>Schedule Consultation</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="space-y-2">
-                    <label for="schedule-time-input" class="text-sm font-medium text-gray-700">Date & Time</label>
-                    <input id="schedule-time-input" type="datetime-local" required class="input-field">
-                </div>
-                <div class="space-y-2">
-                    <label for="consultation-notes" class="text-sm font-medium text-gray-700">Notes</label>
-                    <textarea id="consultation-notes" rows="4" class="input-field" placeholder="Describe symptoms or reason for visit..."></textarea>
-                </div>
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button id="cancel-modal-btn" type="button" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Schedule Consultation</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <script src="js/api.js?v=2"></script>
     <script src="js/auth.js"></script>
-    <script src="js/dashboard.js?v=2"></script>
+    <script src="js/dashboard.js?v=4"></script>
     <script>
         lucide.createIcons();
     </script>

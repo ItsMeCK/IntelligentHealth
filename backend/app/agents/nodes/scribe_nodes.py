@@ -69,6 +69,8 @@ class ScribeNodes:
             If a section has no information, explicitly state that (e.g., "No specific symptoms were mentioned by the patient.").
             Do not make up information or add details not present in the provided context.
 
+            CRITICAL: Your response must be EXACTLY 10 lines or fewer. Be concise and focused.
+
             Provided Information:
             - Patient Symptoms: {symptoms}
             - Doctor's Observations: {observations}
@@ -86,8 +88,14 @@ class ScribeNodes:
                 "medications": ", ".join(summary.get('prescribed_medications', [])),
                 "follow_up": ", ".join(summary.get('follow_up_instructions', []))
             })
+            
+            # Limit to 10 lines maximum
+            content = note.content
+            lines = content.split('\n')
+            limited_content = '\n'.join(lines[:10])
+            
             print(f"SOAP note generated successfully.")
-            return {"final_note": note.content}
+            return {"final_note": limited_content}
         except Exception as e:
             print(f"Error generating SOAP note: {e}")
             return {"error": "Failed to generate SOAP note."}

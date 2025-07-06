@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let uploadedReports = [];
     let isChatMinimized = false;
     let chatScrollPosition = 0;
+    let patientSummary = null;
+    let isEditingSummary = false;
 
     // Initialize
     function initialize() {
@@ -73,33 +75,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Setup Event Listeners
-    function setupEventListeners() {
-        generateDdxBtn?.addEventListener('click', generateDifferentialDiagnosis);
-        recordBtn?.addEventListener('click', toggleRecording);
-        uploadForm?.addEventListener('submit', handleFileUpload);
-        aiChatForm?.addEventListener('submit', handleAiChat);
-        
-        // Chat widget toggle
-        chatWidgetHeader?.addEventListener('click', toggleChatWidget);
-        
-        // File upload drag and drop
-        setupDragAndDrop();
-        
-        // Floating Action Button
-        setupFloatingActionButton();
-        
-        // Report Analysis
-        const analyzeReportsBtn = document.getElementById('analyze-reports-btn');
-        analyzeReportsBtn?.addEventListener('click', analyzeReports);
-        
-        // Scribe Controls
-        const clearNoteBtn = document.getElementById('clear-note-btn');
-        const saveNoteBtn = document.getElementById('save-note-btn');
-        
-        clearNoteBtn?.addEventListener('click', clearSoapNote);
-        saveNoteBtn?.addEventListener('click', saveSoapNote);
-    }
+            // Setup Event Listeners
+        function setupEventListeners() {
+            generateDdxBtn?.addEventListener('click', generateDifferentialDiagnosis);
+            recordBtn?.addEventListener('click', toggleRecording);
+            uploadForm?.addEventListener('submit', handleFileUpload);
+            aiChatForm?.addEventListener('submit', handleAiChat);
+            
+            // Chat widget toggle
+            chatWidgetHeader?.addEventListener('click', toggleChatWidget);
+            
+            // File upload drag and drop
+            setupDragAndDrop();
+            
+            // Floating Action Button
+            setupFloatingActionButton();
+            
+            // Report Analysis
+            const analyzeReportsBtn = document.getElementById('analyze-reports-btn');
+            analyzeReportsBtn?.addEventListener('click', analyzeReports);
+            
+            // Scribe Controls
+            const clearNoteBtn = document.getElementById('clear-note-btn');
+            const saveNoteBtn = document.getElementById('save-note-btn');
+            
+            clearNoteBtn?.addEventListener('click', clearSoapNote);
+            saveNoteBtn?.addEventListener('click', saveSoapNote);
+            
+            // Patient Summary Controls
+            const generateSummaryBtn = document.getElementById('generate-summary-btn');
+            const downloadPdfBtn = document.getElementById('download-pdf-btn');
+            const printSummaryBtn = document.getElementById('print-summary-btn');
+            const saveSummaryBtn = document.getElementById('save-summary-btn');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
+            const addMedicationBtn = document.querySelector('.add-medication-btn');
+            const addRecommendationBtn = document.querySelector('.add-recommendation-btn');
+            
+            generateSummaryBtn?.addEventListener('click', generatePatientSummary);
+            downloadPdfBtn?.addEventListener('click', downloadSummaryPDF);
+            printSummaryBtn?.addEventListener('click', printSummary);
+            saveSummaryBtn?.addEventListener('click', savePatientSummary);
+            cancelEditBtn?.addEventListener('click', cancelEditSummary);
+            addMedicationBtn?.addEventListener('click', addMedicationField);
+            addRecommendationBtn?.addEventListener('click', addRecommendationField);
+        }
 
     // Setup Floating Action Button
     function setupFloatingActionButton() {
@@ -236,6 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentConsultation.soap_note) {
                 displaySavedSoapNote(currentConsultation.soap_note);
             }
+            
+            // Load saved patient summary if it exists
+            loadSavedPatientSummary();
             
         } catch (error) {
             console.error('Error loading consultation:', error);
@@ -405,11 +427,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Format DDx Result
     function formatDdxResult(ddx) {
         if (typeof ddx === 'string') {
-            return ddx.replace(/\n/g, '<br>');
+            // Split into lines and limit to 10 lines
+            const lines = ddx.split('\n').slice(0, 10);
+            return lines.join('\n').replace(/\n/g, '<br>');
         }
         
         if (Array.isArray(ddx)) {
-            return ddx.map(item => `<li>${item}</li>`).join('');
+            // Limit array items to 10
+            return ddx.slice(0, 10).map(item => `<li>${item}</li>`).join('');
         }
         
         return JSON.stringify(ddx, null, 2);
@@ -1505,5 +1530,626 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     initialize();
+
+    // --- Patient Summary Functions ---
+    
+    // Generate Patient Summary
+    async function generatePatientSummary() {
+        if (!currentConsultation) return;
+        
+        const generateBtn = document.getElementById('generate-summary-btn');
+        const summaryStatus = document.getElementById('summary-status');
+        
+        try {
+            // Update UI
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = `
+                <i data-lucide="loader-circle" class="h-4 w-4 animate-spin"></i>
+                <span>Generating...</span>
+            `;
+            summaryStatus.textContent = 'Generating patient summary...';
+            summaryStatus.className = 'text-sm font-medium text-blue-600';
+            
+            const token = localStorage.getItem('accessToken');
+            const response = await api.generatePatientSummary(currentConsultation.id, token);
+            
+            if (!response.ok) throw new Error('Failed to generate summary');
+            
+            const result = await response.json();
+            patientSummary = result.summary;
+            
+            // Display summary using existing function that handles SOAP and DDx
+            displayPatientSummary(patientSummary);
+            
+            // Show download and print buttons
+            document.getElementById('download-pdf-btn').classList.remove('hidden');
+            document.getElementById('print-summary-btn').classList.remove('hidden');
+            
+            summaryStatus.textContent = 'Summary generated successfully';
+            summaryStatus.className = 'text-sm font-medium text-green-600';
+            showNotification('Patient summary generated successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error generating summary:', error);
+            summaryStatus.textContent = 'Failed to generate summary';
+            summaryStatus.className = 'text-sm font-medium text-red-600';
+            showNotification('Failed to generate summary', 'error');
+        } finally {
+            generateBtn.disabled = false;
+            generateBtn.innerHTML = `
+                <i data-lucide="plus" class="h-4 w-4"></i>
+                <span>Generate Summary</span>
+            `;
+        }
+    }
+    
+    // Load Saved Patient Summary
+    async function loadSavedPatientSummary() {
+        if (!currentConsultation) return;
+        
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await api.getSavedSummary(currentConsultation.id, token);
+            
+            if (!response.ok) {
+                console.log('No saved summary found');
+                return;
+            }
+            
+            const savedSummary = await response.json();
+            
+            if (savedSummary.has_saved_summary) {
+                displaySavedPatientSummary(savedSummary);
+            }
+            
+        } catch (error) {
+            console.error('Error loading saved summary:', error);
+        }
+    }
+    
+    // Display Saved Patient Summary
+    function displaySavedPatientSummary(savedSummary) {
+        const summaryContent = document.getElementById('summary-content');
+        const summaryText = document.getElementById('summary-text');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const printSummaryBtn = document.getElementById('print-summary-btn');
+        
+        if (!summaryContent || !summaryText) return;
+        
+        summaryContent.classList.remove('hidden');
+        downloadPdfBtn?.classList.remove('hidden');
+        printSummaryBtn?.classList.remove('hidden');
+        
+        // Format the saved summary data
+        let summaryHTML = '';
+        
+        // Basic consultation info
+        summaryHTML += `<p><strong>Consultation Date:</strong> ${new Date(currentConsultation.scheduled_time).toLocaleDateString()}</p>`;
+        summaryHTML += `<p><strong>Patient:</strong> ${currentConsultation.patient.full_name}</p>`;
+        summaryHTML += `<p><strong>Doctor:</strong> ${currentConsultation.doctor.full_name}</p>`;
+        
+        // Doctor's Summary (if available)
+        if (savedSummary.ai_generated_summary && savedSummary.ai_generated_summary !== 'No notes provided') {
+            summaryHTML += `<div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">`;
+            summaryHTML += `<h4 class="font-semibold text-blue-900 mb-2 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="stethoscope" class="h-4 w-4"></i>`;
+            summaryHTML += `<span>Doctor's Summary</span>`;
+            summaryHTML += `</h4>`;
+            summaryHTML += `<p class="text-sm text-gray-700">${savedSummary.ai_generated_summary}</p>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Doctor's edited summary
+        if (savedSummary.patient_summary) {
+            summaryHTML += `<div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">`;
+            summaryHTML += `<h4 class="font-semibold text-blue-900 mb-2 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="edit-3" class="h-4 w-4"></i>`;
+            summaryHTML += `<span>Doctor's Additional Notes</span>`;
+            summaryHTML += `</h4>`;
+            summaryHTML += `<p class="text-sm text-gray-700">${savedSummary.patient_summary}</p>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Medications
+        if (savedSummary.medications && savedSummary.medications.length > 0) {
+            summaryHTML += `<div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">`;
+            summaryHTML += `<h4 class="font-semibold text-green-900 mb-2 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="pill" class="h-4 w-4"></i>`;
+            summaryHTML += `<span>Prescribed Medications</span>`;
+            summaryHTML += `</h4>`;
+            summaryHTML += `<ul class="text-sm text-gray-700 space-y-1">`;
+            savedSummary.medications.forEach(med => {
+                summaryHTML += `<li>• ${med}</li>`;
+            });
+            summaryHTML += `</ul>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Recommendations
+        if (savedSummary.recommendations && savedSummary.recommendations.length > 0) {
+            summaryHTML += `<div class="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">`;
+            summaryHTML += `<h4 class="font-semibold text-purple-900 mb-2 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="lightbulb" class="h-4 w-4"></i>`;
+            summaryHTML += `<span>Recommendations</span>`;
+            summaryHTML += `</h4>`;
+            summaryHTML += `<ul class="text-sm text-gray-700 space-y-1">`;
+            savedSummary.recommendations.forEach(rec => {
+                summaryHTML += `<li>• ${rec}</li>`;
+            });
+            summaryHTML += `</ul>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Follow-up instructions
+        if (savedSummary.follow_up_notes) {
+            summaryHTML += `<div class="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">`;
+            summaryHTML += `<h4 class="font-semibold text-orange-900 mb-2 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="calendar" class="h-4 w-4"></i>`;
+            summaryHTML += `<span>Follow-up Instructions</span>`;
+            summaryHTML += `</h4>`;
+            summaryHTML += `<p class="text-sm text-gray-700">${savedSummary.follow_up_notes}</p>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Last updated info
+        if (savedSummary.last_updated) {
+            summaryHTML += `<div class="mt-4 text-xs text-gray-500">`;
+            summaryHTML += `<i data-lucide="clock" class="h-3 w-3 inline mr-1"></i>`;
+            summaryHTML += `Last updated: ${new Date(savedSummary.last_updated).toLocaleString()}`;
+            summaryHTML += `</div>`;
+        }
+        
+        summaryText.innerHTML = summaryHTML;
+        
+        // Show doctor edit panel if user is a doctor
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role === 'doctor') {
+            document.getElementById('doctor-edit-panel').classList.remove('hidden');
+            
+            // Populate edit fields with saved data
+            document.getElementById('ai-summary-edit').value = savedSummary.ai_generated_summary || '';
+            document.getElementById('summary-edit').value = savedSummary.patient_summary || '';
+            document.getElementById('follow-up-edit').value = savedSummary.follow_up_notes || '';
+            
+            // Populate medications
+            const medicationsContainer = document.getElementById('medications-container');
+            medicationsContainer.innerHTML = '';
+            if (savedSummary.medications && savedSummary.medications.length > 0) {
+                savedSummary.medications.forEach(med => {
+                    addMedicationFieldWithValue(med);
+                });
+            } else {
+                addMedicationField();
+            }
+            
+            // Populate recommendations
+            const recommendationsContainer = document.getElementById('recommendations-container');
+            recommendationsContainer.innerHTML = '';
+            if (savedSummary.recommendations && savedSummary.recommendations.length > 0) {
+                savedSummary.recommendations.forEach(rec => {
+                    addRecommendationFieldWithValue(rec);
+                });
+            } else {
+                addRecommendationField();
+            }
+        }
+        
+        lucide.createIcons();
+    }
+    
+    // Display Patient Summary (for newly generated summaries)
+    function displayPatientSummary(summaryData) {
+        const summaryContent = document.getElementById('summary-content');
+        const summaryText = document.getElementById('summary-text');
+        
+        if (!summaryContent || !summaryText) return;
+        
+        summaryContent.classList.remove('hidden');
+        
+        // Get existing doctor's data to preserve it
+        const doctorNotes = document.getElementById('summary-edit')?.value || '';
+        const medications = document.getElementById('medications-container')?.querySelectorAll('.medication-input') || [];
+        const recommendations = document.getElementById('recommendations-container')?.querySelectorAll('.recommendation-input') || [];
+        const followUpNotes = document.getElementById('follow-up-edit')?.value || '';
+        
+        // Get medications and recommendations from input fields
+        const medicationsList = Array.from(medications).map(input => input.value).filter(val => val.trim());
+        const recommendationsList = Array.from(recommendations).map(input => input.value).filter(val => val.trim());
+        
+        // Create a patient-friendly summary
+        let summaryHTML = '';
+        
+        // Basic consultation info
+        if (summaryData.consultation_date) {
+            summaryHTML += `<p><strong>Consultation Date:</strong> ${summaryData.consultation_date}</p>`;
+        }
+        
+        if (summaryData.patient_name) {
+            summaryHTML += `<p><strong>Patient:</strong> ${summaryData.patient_name}</p>`;
+        }
+        
+        if (summaryData.doctor_name) {
+            summaryHTML += `<p><strong>Doctor:</strong> ${summaryData.doctor_name}</p>`;
+        }
+        
+        // Patient Summary Section (shows edited content, not raw AI)
+        summaryHTML += `<div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">`;
+        summaryHTML += `<h3 class="text-lg font-semibold text-blue-900 mb-3 flex items-center space-x-2">`;
+        summaryHTML += `<i data-lucide="user" class="h-5 w-5"></i>`;
+        summaryHTML += `<span>Patient Summary</span>`;
+        summaryHTML += `</h3>`;
+        
+        // Show the edited summary (AI + doctor edits combined)
+        const aiSummaryEdit = document.getElementById('ai-summary-edit')?.value || '';
+        const doctorNotesEdit = document.getElementById('summary-edit')?.value || '';
+        
+        if (aiSummaryEdit || doctorNotesEdit) {
+            let combinedSummary = '';
+            if (aiSummaryEdit) {
+                combinedSummary += aiSummaryEdit;
+            }
+            if (doctorNotesEdit) {
+                if (combinedSummary) combinedSummary += '\n\n';
+                combinedSummary += doctorNotesEdit;
+            }
+            summaryHTML += `<p class="text-sm text-gray-700">${combinedSummary}</p>`;
+        } else {
+            summaryHTML += `<p class="text-sm text-gray-500">No summary available yet. Please generate SOAP notes first.</p>`;
+        }
+        
+        summaryHTML += `</div>`;
+        
+        // Doctor's Notes Section (if any)
+        if (doctorNotes) {
+            summaryHTML += `<div class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">`;
+            summaryHTML += `<h3 class="text-lg font-semibold text-green-900 mb-3 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="edit-3" class="h-5 w-5"></i>`;
+            summaryHTML += `<span>Doctor's Notes</span>`;
+            summaryHTML += `</h3>`;
+            summaryHTML += `<p class="text-sm text-gray-700">${doctorNotes}</p>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Medications Section (if any)
+        if (medicationsList.length > 0) {
+            summaryHTML += `<div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">`;
+            summaryHTML += `<h3 class="text-lg font-semibold text-yellow-900 mb-3 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="pill" class="h-5 w-5"></i>`;
+            summaryHTML += `<span>Prescribed Medications</span>`;
+            summaryHTML += `</h3>`;
+            summaryHTML += `<ul class="text-sm text-gray-700 space-y-1">`;
+            medicationsList.forEach(med => {
+                summaryHTML += `<li>• ${med}</li>`;
+            });
+            summaryHTML += `</ul>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Recommendations Section (if any)
+        if (recommendationsList.length > 0) {
+            summaryHTML += `<div class="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">`;
+            summaryHTML += `<h3 class="text-lg font-semibold text-purple-900 mb-3 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="lightbulb" class="h-5 w-5"></i>`;
+            summaryHTML += `<span>Recommendations</span>`;
+            summaryHTML += `</h3>`;
+            summaryHTML += `<ul class="text-sm text-gray-700 space-y-1">`;
+            recommendationsList.forEach(rec => {
+                summaryHTML += `<li>• ${rec}</li>`;
+            });
+            summaryHTML += `</ul>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Follow-up Notes Section (if any)
+        if (followUpNotes) {
+            summaryHTML += `<div class="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">`;
+            summaryHTML += `<h3 class="text-lg font-semibold text-orange-900 mb-3 flex items-center space-x-2">`;
+            summaryHTML += `<i data-lucide="calendar" class="h-5 w-5"></i>`;
+            summaryHTML += `<span>Follow-up Instructions</span>`;
+            summaryHTML += `</h3>`;
+            summaryHTML += `<p class="text-sm text-gray-700">${followUpNotes}</p>`;
+            summaryHTML += `</div>`;
+        }
+        
+        // Show doctor edit panel if user is a doctor
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role === 'doctor') {
+            document.getElementById('doctor-edit-panel').classList.remove('hidden');
+            
+            // Populate AI summary field if available
+            const aiSummaryEdit = document.getElementById('ai-summary-edit');
+            if (aiSummaryEdit && summaryData.ai_generated_summary) {
+                aiSummaryEdit.value = summaryData.ai_generated_summary;
+            }
+        }
+        
+        summaryText.innerHTML = summaryHTML;
+    }
+    
+    // Download Summary PDF
+    async function downloadSummaryPDF() {
+        if (!currentConsultation) return;
+        
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await api.getSummaryPDF(currentConsultation.id, token);
+            
+            if (!response.ok) throw new Error('Failed to download PDF');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `patient_summary_${currentConsultation.id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('PDF downloaded successfully', 'success');
+            
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            showNotification('Failed to download PDF', 'error');
+        }
+    }
+    
+    // Print Summary
+    function printSummary() {
+        // Get current edited content from the form
+        const aiSummaryEdit = document.getElementById('ai-summary-edit')?.value || '';
+        const doctorNotesEdit = document.getElementById('summary-edit')?.value || '';
+        const medications = document.getElementById('medications')?.value || '';
+        const recommendations = document.getElementById('recommendations')?.value || '';
+        const followUp = document.getElementById('follow-up-edit')?.value || '';
+        
+        // Combine AI and doctor summaries
+        let combinedSummary = '';
+        if (aiSummaryEdit) {
+            combinedSummary += aiSummaryEdit;
+        }
+        if (doctorNotesEdit) {
+            if (combinedSummary) combinedSummary += '\n\n';
+            combinedSummary += doctorNotesEdit;
+        }
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Patient Summary - ${currentConsultation.patient.full_name}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .section { margin-bottom: 20px; }
+                    .section h3 { color: #2563eb; margin-bottom: 10px; }
+                    .medication-item, .recommendation-item { margin-bottom: 5px; }
+                    .doctor-summary { background-color: #eff6ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .medications { background-color: #f0fdf4; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .recommendations { background-color: #faf5ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    .follow-up { background-color: #fff7ed; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+                    @media print {
+                        body { margin: 0; }
+                        .no-print { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Patient Summary Report</h1>
+                    <p><strong>Patient:</strong> ${currentConsultation.patient.full_name}</p>
+                    <p><strong>Doctor:</strong> ${currentConsultation.doctor.full_name}</p>
+                    <p><strong>Date:</strong> ${new Date(currentConsultation.scheduled_time).toLocaleDateString()}</p>
+                </div>
+                
+                <div class="section">
+                    <h3>Summary</h3>
+                    <div class="doctor-summary">
+                        <p>${combinedSummary || 'No summary available'}</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Medications</h3>
+                    <div class="medications">
+                        <p>${medications || 'No medications listed'}</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h3>Recommendations</h3>
+                    <div class="recommendations">
+                        <p>${recommendations || 'No recommendations listed'}</p>
+                    </div>
+                </div>
+                
+                ${followUp ? `
+                <div class="section">
+                    <h3>Follow-up Instructions</h3>
+                    <div class="follow-up">
+                        <p>${followUp}</p>
+                    </div>
+                </div>
+                ` : ''}
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    }
+    
+    // Save Patient Summary (Doctor only)
+    async function savePatientSummary() {
+        if (!currentConsultation) return;
+        
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        if (user.role !== 'doctor') {
+            showNotification('Only doctors can edit summaries', 'error');
+            return;
+        }
+        
+        try {
+            const aiSummaryText = document.getElementById('ai-summary-edit').value;
+            const doctorNotes = document.getElementById('summary-edit').value;
+            const followUp = document.getElementById('follow-up-edit').value;
+            
+            // Collect medications
+            const medications = [];
+            document.querySelectorAll('.medication-input').forEach(input => {
+                if (input.value.trim()) {
+                    medications.push(input.value.trim());
+                }
+            });
+            
+            // Collect recommendations
+            const recommendations = [];
+            document.querySelectorAll('.recommendation-input').forEach(input => {
+                if (input.value.trim()) {
+                    recommendations.push(input.value.trim());
+                }
+            });
+            
+            const summaryData = {
+                ai_summary: aiSummaryText,
+                summary: doctorNotes,
+                medications: medications,
+                recommendations: recommendations,
+                follow_up: followUp
+            };
+            
+            const token = localStorage.getItem('accessToken');
+            const response = await api.updatePatientSummary(currentConsultation.id, summaryData, token);
+            
+            if (!response.ok) throw new Error('Failed to save summary');
+            
+            showNotification('Summary saved successfully', 'success');
+            isEditingSummary = false;
+            
+            // Refresh the summary display
+            await generatePatientSummary();
+            
+        } catch (error) {
+            console.error('Error saving summary:', error);
+            showNotification('Failed to save summary', 'error');
+        }
+    }
+    
+    // Cancel Edit Summary
+    function cancelEditSummary() {
+        isEditingSummary = false;
+        // Reset form fields
+        document.getElementById('summary-edit').value = '';
+        document.getElementById('follow-up-edit').value = '';
+        
+        // Clear dynamic fields
+        clearDynamicFields('medications-container', 'medication-input');
+        clearDynamicFields('recommendations-container', 'recommendation-input');
+        
+        showNotification('Edit cancelled', 'info');
+    }
+    
+    // Add Medication Field
+    function addMedicationField() {
+        const container = document.getElementById('medications-container');
+        const newField = document.createElement('div');
+        newField.className = 'flex items-center space-x-2';
+        newField.innerHTML = `
+            <input type="text" class="medication-input input-field-modern flex-1" placeholder="Enter medication name and dosage">
+            <button type="button" class="remove-field-btn btn-secondary-modern px-3 py-2 text-red-600 hover:text-red-800">
+                <i data-lucide="minus" class="h-4 w-4"></i>
+            </button>
+        `;
+        container.appendChild(newField);
+        
+        // Add remove functionality
+        const removeBtn = newField.querySelector('.remove-field-btn');
+        removeBtn.addEventListener('click', () => {
+            container.removeChild(newField);
+        });
+        
+        lucide.createIcons();
+    }
+    
+    // Add Medication Field with Value
+    function addMedicationFieldWithValue(value) {
+        const container = document.getElementById('medications-container');
+        const newField = document.createElement('div');
+        newField.className = 'flex items-center space-x-2';
+        newField.innerHTML = `
+            <input type="text" class="medication-input input-field-modern flex-1" placeholder="Enter medication name and dosage" value="${value}">
+            <button type="button" class="remove-field-btn btn-secondary-modern px-3 py-2 text-red-600 hover:text-red-800">
+                <i data-lucide="minus" class="h-4 w-4"></i>
+            </button>
+        `;
+        container.appendChild(newField);
+        
+        // Add remove functionality
+        const removeBtn = newField.querySelector('.remove-field-btn');
+        removeBtn.addEventListener('click', () => {
+            container.removeChild(newField);
+        });
+        
+        lucide.createIcons();
+    }
+    
+    // Add Recommendation Field
+    function addRecommendationField() {
+        const container = document.getElementById('recommendations-container');
+        const newField = document.createElement('div');
+        newField.className = 'flex items-center space-x-2';
+        newField.innerHTML = `
+            <input type="text" class="recommendation-input input-field-modern flex-1" placeholder="Enter recommendation">
+            <button type="button" class="remove-field-btn btn-secondary-modern px-3 py-2 text-red-600 hover:text-red-800">
+                <i data-lucide="minus" class="h-4 w-4"></i>
+            </button>
+        `;
+        container.appendChild(newField);
+        
+        // Add remove functionality
+        const removeBtn = newField.querySelector('.remove-field-btn');
+        removeBtn.addEventListener('click', () => {
+            container.removeChild(newField);
+        });
+        
+        lucide.createIcons();
+    }
+    
+    // Add Recommendation Field with Value
+    function addRecommendationFieldWithValue(value) {
+        const container = document.getElementById('recommendations-container');
+        const newField = document.createElement('div');
+        newField.className = 'flex items-center space-x-2';
+        newField.innerHTML = `
+            <input type="text" class="recommendation-input input-field-modern flex-1" placeholder="Enter recommendation" value="${value}">
+            <button type="button" class="remove-field-btn btn-secondary-modern px-3 py-2 text-red-600 hover:text-red-800">
+                <i data-lucide="minus" class="h-4 w-4"></i>
+            </button>
+        `;
+        container.appendChild(newField);
+        
+        // Add remove functionality
+        const removeBtn = newField.querySelector('.remove-field-btn');
+        removeBtn.addEventListener('click', () => {
+            container.removeChild(newField);
+        });
+        
+        lucide.createIcons();
+    }
+    
+    // Clear Dynamic Fields
+    function clearDynamicFields(containerId, inputClass) {
+        const container = document.getElementById(containerId);
+        const inputs = container.querySelectorAll(`.${inputClass}`);
+        inputs.forEach((input, index) => {
+            if (index > 0) { // Keep the first field
+                container.removeChild(input.parentElement);
+            } else {
+                input.value = '';
+            }
+        });
+    }
 });
 

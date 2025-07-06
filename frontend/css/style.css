@@ -26,6 +26,150 @@ body {
     @apply px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-all duration-200;
 }
 
+/* Modern Modal Buttons */
+.btn-primary-modern {
+    @apply px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105 hover:shadow-lg flex items-center;
+}
+
+.btn-secondary-modern {
+    @apply px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-2 transition-all duration-200 flex items-center;
+}
+
+/* Modern Input Fields */
+.input-field-modern {
+    @apply block w-full px-4 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200 shadow-sm;
+}
+
+.input-field-modern:focus {
+    @apply shadow-lg transform scale-[1.02] border-blue-500;
+}
+
+.input-field-modern:hover {
+    @apply border-gray-400;
+}
+
+/* Step Indicators */
+.step-indicator {
+    @apply w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center transition-all duration-300;
+}
+
+.step-indicator.active {
+    @apply bg-white border-white shadow-lg;
+}
+
+.step-indicator.completed {
+    @apply bg-white border-white shadow-lg;
+}
+
+.step-number {
+    @apply text-sm font-semibold text-blue-600;
+}
+
+.step-indicator.active .step-number {
+    @apply text-blue-600;
+}
+
+.step-indicator.completed .step-number {
+    @apply text-green-600;
+}
+
+.step-label {
+    @apply text-white/80 transition-all duration-300;
+}
+
+.step-indicator.active + .step-label,
+.step-indicator.completed + .step-label {
+    @apply text-white font-medium;
+}
+
+/* Progress Bar */
+.progress-bar {
+    @apply transition-all duration-500 ease-out;
+}
+
+/* Step Content */
+.step-content {
+    @apply transition-all duration-300 ease-out;
+}
+
+.step-content.active {
+    @apply opacity-100 transform translate-x-0;
+}
+
+.step-content.hidden {
+    @apply opacity-0 transform translate-x-4 pointer-events-none;
+}
+
+/* Time Slot Buttons */
+.time-slot-btn {
+    @apply px-4 py-3 text-sm font-medium text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-all duration-200 cursor-pointer;
+}
+
+.time-slot-btn.selected {
+    @apply border-blue-500 text-blue-700 bg-blue-50 shadow-md;
+}
+
+.time-slot-btn.disabled {
+    @apply text-gray-400 bg-gray-100 border-gray-200 cursor-not-allowed;
+}
+
+/* Modal Animations */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-slide-in {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Modal Responsive Styles */
+@media (max-width: 640px) {
+    #create-consultation-modal {
+        padding: 0.5rem;
+    }
+    
+    #modal-content {
+        max-height: 98vh;
+        border-radius: 1rem;
+    }
+    
+    .step-content {
+        padding: 0.5rem 0;
+    }
+    
+    .step-content .space-y-6 {
+        gap: 1rem;
+    }
+    
+    .step-content .space-y-4 {
+        gap: 0.75rem;
+    }
+    
+    .step-content .space-y-2 {
+        gap: 0.5rem;
+    }
+}
+
+/* Consultation Summary */
+.consultation-summary-item {
+    @apply flex items-center justify-between py-2 border-b border-blue-100 last:border-b-0;
+}
+
+.consultation-summary-label {
+    @apply text-blue-800 font-medium;
+}
+
+.consultation-summary-value {
+    @apply text-blue-600;
+}
+
 /* Card Components */
 .card {
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02];
@@ -337,13 +481,34 @@ body {
     .stat-card {
         @apply p-4;
     }
-    
+
     .chart-card {
         @apply p-4;
     }
-    
+
     .activity-card {
         @apply p-4;
+    }
+
+    /* Mobile Modal Adjustments */
+    #create-consultation-modal {
+        @apply p-2;
+    }
+
+    #modal-content {
+        @apply max-w-full max-h-[98vh];
+    }
+
+    .step-content {
+        @apply px-4;
+    }
+
+    .time-slot-btn {
+        @apply px-3 py-2 text-xs;
+    }
+
+    #time-slots {
+        @apply grid-cols-2;
     }
 }
 
@@ -510,4 +675,85 @@ body {
         height: 140px !important;
         max-height: 180px;
     }
+}
+
+/* Patient Summary Styles */
+.summary-section {
+    @apply bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6;
+}
+
+.summary-content {
+    @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm;
+}
+
+.summary-text {
+    @apply text-sm text-gray-700 prose prose-sm max-w-none;
+}
+
+.summary-text strong {
+    @apply text-gray-900 font-semibold;
+}
+
+.summary-text ul {
+    @apply list-disc list-inside space-y-1 mt-2;
+}
+
+.summary-text li {
+    @apply text-sm text-gray-700;
+}
+
+/* Edit Panel Styles */
+.edit-panel {
+    @apply bg-white rounded-xl border border-gray-200 p-6 shadow-sm;
+}
+
+.edit-panel label {
+    @apply text-sm font-semibold text-gray-700 block mb-2;
+}
+
+.edit-panel textarea {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none;
+}
+
+.edit-panel input {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+}
+
+/* Dynamic Field Styles */
+.dynamic-field {
+    @apply flex items-center space-x-2;
+}
+
+.dynamic-field input {
+    @apply flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+}
+
+.remove-field-btn {
+    @apply px-3 py-2 bg-gray-100 hover:bg-gray-200 text-red-600 hover:text-red-800 rounded-lg transition-colors duration-200;
+}
+
+.add-field-btn {
+    @apply px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-800 rounded-lg transition-colors duration-200;
+}
+
+/* PDF Download Button */
+.pdf-download-btn {
+    @apply bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-green-300;
+}
+
+/* Summary Status Styles */
+.summary-status {
+    @apply text-sm font-medium mb-4;
+}
+
+.summary-status.success {
+    @apply text-green-600;
+}
+
+.summary-status.error {
+    @apply text-red-600;
+}
+
+.summary-status.loading {
+    @apply text-blue-600;
 }
