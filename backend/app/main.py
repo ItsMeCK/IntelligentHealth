@@ -6,6 +6,7 @@ from app.db.base import Base
 from app.db.session import engine
 # --- Updated for Phase 2 ---
 from app.apis.v1 import router_users, router_consultations, router_ai_features, router_patients
+import os
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -18,11 +19,8 @@ app = FastAPI(
 
 # CORS (Cross-Origin Resource Sharing) Configuration
 origins = [
-    "http://localhost:8001",
-    "http://127.0.0.1:8001",
-    "http://localhost:8000", 
-    "http://127.0.0.1:8000",
-    "*"  # Allow all origins for development
+    "https://medflow.aiagentictool.tech",
+    "https://storage.googleapis.com"
 ]
 
 app.add_middleware(

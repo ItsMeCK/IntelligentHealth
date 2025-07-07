@@ -27,3 +27,4 @@ langchain-community
 langgraph
 Pillow
 reportlab
+cloud-sql-python-connector[pymysql]

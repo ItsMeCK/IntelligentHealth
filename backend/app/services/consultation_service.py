@@ -302,11 +302,12 @@ class ConsultationService:
                 if report_summaries:
                     medical_data.append(f"Medical Reports:\n" + "\n".join(report_summaries))
             
-            # Create the prompt for AI
+            # Fix: move join outside f-string
+            medical_data_str = '\n\n'.join(medical_data)
             prompt = f"""
             As a medical AI assistant, create a concise, patient-friendly summary (maximum 5 sentences) based on the following medical data:
 
-            {'\n\n'.join(medical_data)}
+            {medical_data_str}
 
             Instructions:
             1. Create a clear, compassionate summary that a patient can understand

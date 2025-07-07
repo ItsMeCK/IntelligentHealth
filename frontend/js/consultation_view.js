@@ -1,8 +1,7 @@
 // Modern Consultation View JavaScript - MedFlow Platform
 
 // At the top, ensure API_BASE_URL is imported or defined
-// If not, import from api.js or define here:
-// const API_BASE_URL = 'http://localhost:8001/api/v1';
+// const API_BASE_URL = 'https://intelligent-health-479859828067.us-central1.run.app/api/v1';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Extract consultation ID from URL (e.g., ?id=123)
