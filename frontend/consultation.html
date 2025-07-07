@@ -605,6 +605,80 @@
                 </div>
             </div>
         </div>
+
+        <!-- Radiology Image Analysis Section -->
+        <div id="radiology-analysis-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i data-lucide="scan-eye" class="h-6 w-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">Expert Radiologist Co-Pilot</h3>
+                </div>
+            </div>
+            <form id="radiology-upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-blue-300">
+                <div class="text-center">
+                    <i data-lucide="image" class="mx-auto h-12 w-12 text-blue-400 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Radiology Image</h4>
+                    <p class="text-sm text-gray-600 mb-4">Drag and drop a radiology image (CT, MRI, X-ray, etc.), or click to select</p>
+                    <input type="file" id="radiology-image-file" required class="input-field" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff" />
+                    <button type="submit" class="btn-primary mt-4">Analyze Image</button>
+                </div>
+                <div id="radiology-upload-status" class="mt-4 text-sm font-medium"></div>
+            </form>
+            <div id="radiology-progress" class="mb-4 text-sm text-blue-700"></div>
+            <div id="radiology-report-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                    <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
+                    <span>Radiology Report</span>
+                </h4>
+                <div id="radiology-report-content" class="prose prose-sm max-w-none"></div>
+                <button id="download-radiology-report-btn" class="btn-secondary mt-4">Download PDF</button>
+            </div>
+        </div>
+
+        <!-- Past Radiology Analyses Section -->
+        <div id="past-radiology-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i data-lucide="search" class="h-6 w-6 text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">View Past Radiology Analysis</h3>
+            </div>
+            <form id="fetch-analysis-form" class="flex items-center space-x-4 mb-4">
+                <input type="number" id="fetch-analysis-id" class="input-field w-40" placeholder="Analysis ID" required />
+                <button type="submit" class="btn-primary">Fetch Analysis</button>
+            </form>
+            <div id="fetch-analysis-status" class="mb-2 text-sm text-blue-700"></div>
+            <div id="fetched-analysis-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                    <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
+                    <span>Fetched Radiology Report</span>
+                </h4>
+                <div id="fetched-analysis-report-content" class="prose prose-sm max-w-none"></div>
+                <button id="download-fetched-analysis-pdf-btn" class="btn-secondary mt-4">Download PDF</button>
+            </div>
+        </div>
+
+        <!-- Doctor's Radiology Analyses Section -->
+        <div id="doctor-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i data-lucide="stethoscope" class="h-6 w-6 text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900">My Radiology Analyses</h3>
+            </div>
+            <div id="doctor-analyses-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <!-- Modal for details -->
+            <div id="analysis-detail-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full relative">
+                    <button id="close-analysis-detail" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+                        <i data-lucide="x" class="h-6 w-6"></i>
+                    </button>
+                    <div id="analysis-detail-content"></div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Floating Action Button -->

@@ -1,7 +1,7 @@
 # backend/app/models/consultation.py
 
 import enum
-from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Enum, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
@@ -46,3 +46,18 @@ class MedicalReport(Base):
     summary = Column(Text, nullable=True)
 
     consultation = relationship("Consultation", back_populates="reports")
+
+
+class RadiologyAnalysis(Base):
+    __tablename__ = "radiology_analyses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    consultation_id = Column(Integer, ForeignKey("consultations.id"), nullable=True)
+    report_id = Column(Integer, ForeignKey("medical_reports.id"), nullable=True)
+    image_path = Column(String(512), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    intermediate_outputs = Column(JSON, nullable=True)
+    final_report = Column(Text, nullable=True)
+
+    consultation = relationship("Consultation")
+    report = relationship("MedicalReport")

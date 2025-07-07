@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from app.db.session import engine
 from app.db.base import Base
-from app.models.consultation import Consultation, MedicalReport
+from app.models.consultation import Consultation, MedicalReport, RadiologyAnalysis
 from app.models.user import User
 
 def fix_database():

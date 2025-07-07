@@ -1,6 +1,14 @@
 // Modern Consultation View JavaScript - MedFlow Platform
 
+// At the top, ensure API_BASE_URL is imported or defined
+// If not, import from api.js or define here:
+// const API_BASE_URL = 'http://localhost:8001/api/v1';
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Extract consultation ID from URL (e.g., ?id=123)
+    const urlParams = new URLSearchParams(window.location.search);
+    const consultationIdFromUrl = urlParams.get('id');
+
     // DOM Elements
     const consultationDetailsContainer = document.getElementById('consultation-details-container');
     const ddxSection = document.getElementById('ddx-section');
@@ -23,6 +31,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatWindow = document.getElementById('chat-window');
     const aiChatForm = document.getElementById('ai-chat-form');
     const aiQuestionInput = document.getElementById('ai-question-input');
+
+    // Radiology Image Analysis Integration
+    const radiologyUploadForm = document.getElementById('radiology-upload-form');
+    const radiologyImageFile = document.getElementById('radiology-image-file');
+    const radiologyUploadStatus = document.getElementById('radiology-upload-status');
+    const radiologyProgress = document.getElementById('radiology-progress');
+    const radiologyReportContainer = document.getElementById('radiology-report-container');
+    const radiologyReportContent = document.getElementById('radiology-report-content');
+    const downloadRadiologyReportBtn = document.getElementById('download-radiology-report-btn');
+    let lastRadiologyReportText = '';
+
+    // Past Radiology Analyses Integration
+    const fetchAnalysisForm = document.getElementById('fetch-analysis-form');
+    const fetchAnalysisId = document.getElementById('fetch-analysis-id');
+    const fetchAnalysisStatus = document.getElementById('fetch-analysis-status');
+    const fetchedAnalysisContainer = document.getElementById('fetched-analysis-container');
+    const fetchedAnalysisReportContent = document.getElementById('fetched-analysis-report-content');
+    const downloadFetchedAnalysisPdfBtn = document.getElementById('download-fetched-analysis-pdf-btn');
+    let lastFetchedAnalysisReportText = '';
 
     // State Management
     let currentConsultation = null;
@@ -1938,5 +1965,207 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Radiology Image Analysis Integration
+    if (radiologyUploadForm) {
+        radiologyUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            radiologyUploadStatus.textContent = '';
+            radiologyProgress.textContent = '';
+            radiologyReportContainer.classList.add('hidden');
+            radiologyReportContent.innerHTML = '';
+            const file = radiologyImageFile.files[0];
+            const consultationId = consultationIdFromUrl;
+            if (!file || !consultationId) {
+                radiologyUploadStatus.textContent = 'Please select an image file. (Consultation ID not found)';
+                return;
+            }
+            radiologyUploadStatus.textContent = 'Uploading and analyzing image...';
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('consultation_id', consultationId);
+            try {
+                const response = await fetch(`${API_BASE_URL}/radiology/analyze-image`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Analysis failed');
+                }
+                const result = await response.json();
+                radiologyUploadStatus.textContent = 'Analysis complete.';
+                // Show progress
+                if (result.progress && Array.isArray(result.progress)) {
+                    radiologyProgress.innerHTML = result.progress.map(step => `<div>• ${step}</div>`).join('');
+                }
+                // Render report
+                let reportHtml = '';
+                if (result.final_report) {
+                    reportHtml += `<pre class="whitespace-pre-wrap">${result.final_report}</pre>`;
+                    lastRadiologyReportText = result.final_report;
+                }
+                // Optionally, show structured data
+                if (result.modality || result.body_part) {
+                    reportHtml = `<div class='mb-2'><strong>Modality:</strong> ${result.modality || ''} <strong>Body Part:</strong> ${result.body_part || ''}</div>` + reportHtml;
+                }
+                radiologyReportContent.innerHTML = reportHtml;
+                radiologyReportContainer.classList.remove('hidden');
+            } catch (err) {
+                radiologyUploadStatus.textContent = `Error: ${err.message}`;
+            }
+        });
+    }
+
+    if (downloadRadiologyReportBtn) {
+        downloadRadiologyReportBtn.addEventListener('click', () => {
+            if (!lastRadiologyReportText) return;
+            const blob = new Blob([lastRadiologyReportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'radiology_report.txt';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        });
+    }
+
+    if (fetchAnalysisForm) {
+        fetchAnalysisForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            fetchAnalysisStatus.textContent = '';
+            fetchedAnalysisContainer.classList.add('hidden');
+            fetchedAnalysisReportContent.innerHTML = '';
+            const analysisId = fetchAnalysisId.value;
+            if (!analysisId) {
+                fetchAnalysisStatus.textContent = 'Please enter an analysis ID.';
+                return;
+            }
+            fetchAnalysisStatus.textContent = 'Fetching analysis...';
+            try {
+                const response = await fetch(`${API_BASE_URL}/radiology/analysis/${analysisId}`);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Fetch failed');
+                }
+                const result = await response.json();
+                fetchAnalysisStatus.textContent = 'Analysis fetched.';
+                let reportHtml = '';
+                if (result.final_report) {
+                    reportHtml += `<pre class="whitespace-pre-wrap">${result.final_report}</pre>`;
+                    lastFetchedAnalysisReportText = result.final_report;
+                }
+                fetchedAnalysisReportContent.innerHTML = reportHtml;
+                fetchedAnalysisContainer.classList.remove('hidden');
+            } catch (err) {
+                fetchAnalysisStatus.textContent = `Error: ${err.message}`;
+            }
+        });
+    }
+
+    if (downloadFetchedAnalysisPdfBtn) {
+        downloadFetchedAnalysisPdfBtn.addEventListener('click', () => {
+            if (!lastFetchedAnalysisReportText) return;
+            // Use jsPDF for PDF export
+            if (window.jspdf) {
+                const doc = new window.jspdf.jsPDF();
+                doc.text(lastFetchedAnalysisReportText, 10, 10);
+                doc.save('radiology_report.pdf');
+            } else {
+                // Fallback: download as .txt
+                const blob = new Blob([lastFetchedAnalysisReportText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'radiology_report.txt';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+        });
+    }
+
+    // Doctor's Radiology Analyses Integration
+    const doctorAnalysesList = document.getElementById('doctor-analyses-list');
+    const analysisDetailModal = document.getElementById('analysis-detail-modal');
+    const analysisDetailContent = document.getElementById('analysis-detail-content');
+    const closeAnalysisDetail = document.getElementById('close-analysis-detail');
+
+    async function loadDoctorAnalyses() {
+        if (!doctorAnalysesList) return;
+        doctorAnalysesList.innerHTML = '<div class="col-span-3 text-center text-gray-500">Loading...</div>';
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await fetch(`${API_BASE_URL}/radiology/analyses`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch analyses');
+            }
+            const analyses = await response.json();
+            if (!analyses.length) {
+                doctorAnalysesList.innerHTML = '<div class="col-span-3 text-center text-gray-500">No analyses found.</div>';
+                return;
+            }
+            doctorAnalysesList.innerHTML = analyses.map(analysis => `
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 flex flex-col shadow">
+                    <div class="mb-2 text-xs text-gray-500">Consultation ID: <span class="font-semibold">${analysis.consultation_id}</span></div>
+                    <div class="mb-2 text-sm text-gray-700">Patient: <span class="font-semibold">${analysis.patient_name}</span></div>
+                    <div class="mb-2 text-xs text-gray-500">Date: ${new Date(analysis.created_at).toLocaleString()}</div>
+                    <div class="mb-4 text-sm text-gray-800 line-clamp-4">${analysis.summary || 'No summary available.'}</div>
+                    <button class="btn-primary mt-auto view-analysis-detail-btn" data-analysis-id="${analysis.analysis_id}">View Details</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            doctorAnalysesList.innerHTML = `<div class="col-span-3 text-center text-red-500">${err.message}</div>`;
+        }
+    }
+
+    // Modal logic
+    if (closeAnalysisDetail) {
+        closeAnalysisDetail.addEventListener('click', () => {
+            analysisDetailModal.classList.add('hidden');
+            analysisDetailContent.innerHTML = '';
+        });
+    }
+    document.addEventListener('click', async (e) => {
+        if (e.target.closest('.view-analysis-detail-btn')) {
+            const btn = e.target.closest('.view-analysis-detail-btn');
+            const analysisId = btn.getAttribute('data-analysis-id');
+            analysisDetailContent.innerHTML = '<div class="text-center text-gray-500">Loading...</div>';
+            analysisDetailModal.classList.remove('hidden');
+            try {
+                const token = localStorage.getItem('accessToken');
+                const response = await fetch(`${API_BASE_URL}/radiology/analysis/${analysisId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                if (!response.ok) throw new Error('Failed to fetch analysis details');
+                const detail = await response.json();
+                analysisDetailContent.innerHTML = `
+                    <div class="mb-2 text-xs text-gray-500">Consultation ID: <span class="font-semibold">${detail.consultation_id}</span></div>
+                    <div class="mb-2 text-xs text-gray-500">Date: ${new Date(detail.created_at).toLocaleString()}</div>
+                    <div class="mb-4 text-sm text-gray-800"><pre class="whitespace-pre-wrap">${detail.final_report || 'No report available.'}</pre></div>
+                    <div class="mb-2 text-xs text-gray-500">Intermediate Outputs:</div>
+                    <pre class="bg-gray-100 rounded p-2 text-xs overflow-x-auto">${JSON.stringify(detail.intermediate_outputs, null, 2)}</pre>
+                `;
+            } catch (err) {
+                analysisDetailContent.innerHTML = `<div class="text-center text-red-500">${err.message}</div>`;
+            }
+        }
+        if (e.target === analysisDetailModal) {
+            analysisDetailModal.classList.add('hidden');
+            analysisDetailContent.innerHTML = '';
+        }
+    });
+
+    // Load on page ready
+    loadDoctorAnalyses();
 });
 

@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from sqlalchemy.orm import Session, joinedload # <--- This is the missing import
 from typing import List
 
-from app.models.consultation import Consultation, MedicalReport
+from app.models.consultation import Consultation, MedicalReport, RadiologyAnalysis
 from app.schemas.consultation_schema import ConsultationCreate
 from app.services.document_service import DocumentService
 from app.db.vector_db import get_qdrant_client
@@ -549,3 +549,24 @@ class ConsultationService:
         self.db.commit()
         self.db.refresh(consultation)
         return consultation
+
+
+class RadiologyAnalysisService:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def save_analysis(self, image_path, intermediate_outputs, final_report, consultation_id=None, report_id=None):
+        analysis = RadiologyAnalysis(
+            image_path=image_path,
+            intermediate_outputs=intermediate_outputs,
+            final_report=final_report,
+            consultation_id=consultation_id,
+            report_id=report_id
+        )
+        self.db.add(analysis)
+        self.db.commit()
+        self.db.refresh(analysis)
+        return analysis
+
+    def get_analysis(self, analysis_id):
+        return self.db.query(RadiologyAnalysis).filter(RadiologyAnalysis.id == analysis_id).first()
