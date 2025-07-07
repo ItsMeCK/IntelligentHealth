@@ -262,3 +262,18 @@ async def get_saved_summary(
         return saved_summary
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get saved summary: {str(e)}")
+
+@router.get("/consultations/{consultation_id}", response_model=ConsultationOut)
+def get_consultation(
+    consultation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    consultation_service = ConsultationService(db)
+    consultation = consultation_service.get_consultation_by_id(consultation_id)
+    if not consultation:
+        raise HTTPException(status_code=404, detail="Consultation not found.")
+    # Only allow doctor or patient to view
+    if current_user.id not in [consultation.doctor_id, consultation.patient_id]:
+        raise HTTPException(status_code=403, detail="Not authorized to access this consultation.")
+    return consultation

@@ -90,8 +90,13 @@ document.addEventListener('DOMContentLoaded', () => {
             targetSection.classList.remove('hidden');
         }
 
-        // Update page title
-        pageTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+        // Update page title (defensive)
+        const pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+            pageTitle.textContent = section.charAt(0).toUpperCase() + section.slice(1);
+        } else {
+            console.warn('pageTitle element not found!');
+        }
 
         // Load section-specific data
         currentSection = section;
@@ -461,8 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
-
     // Setup Charts
     function setupCharts() {
         // Consultation Trends Chart
@@ -546,8 +549,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load Dashboard Data
     async function loadDashboardData() {
+        console.log('loadDashboardData called');
+        const token = localStorage.getItem('accessToken');
+        console.log('Token for API call:', token);
         try {
-            const token = localStorage.getItem('accessToken');
             const response = await api.getConsultations(token);
             if (!response.ok) throw new Error('Failed to load consultations');
             consultations = await response.json();
@@ -1025,18 +1030,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize when user is authenticated
     if (localStorage.getItem('accessToken')) {
-        authView.classList.add('hidden');
-        dashboardView.classList.remove('hidden');
-        
+        console.log('Initializing dashboard...');
+        authView?.classList.add('hidden');
+        dashboardView?.classList.remove('hidden');
         // Set user greeting
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        userGreeting.textContent = `Hello, ${user.full_name || 'User'}`;
-        
-        // Show create consultation button for patients and doctors
+        if (userGreeting) userGreeting.textContent = `Hello, ${user.full_name || 'User'}`;
         if (user.role === 'patient' || user.role === 'doctor') {
             createConsultationBtn?.classList.remove('hidden');
         }
-        
         initializeDashboard();
     }
 

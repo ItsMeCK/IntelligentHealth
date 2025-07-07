@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedFlow Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Sticky Top Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+            <div class="flex items-center gap-3">
+                <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-10 h-10 rounded-lg shadow" />
+                <span class="text-2xl font-extrabold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">MedFlow</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
+                <a href="index.html#features" class="hover:text-blue-700 transition">Features</a>
+                <a href="index.html#about" class="hover:text-blue-700 transition">About</a>
+                <button id="logout-btn" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:scale-105 transition-transform">Logout</button>
+            </nav>
+        </div>
+    </header>
+    <div class="pt-20">
+        <div id="dashboard-view">
+            <!-- Sidebar Navigation and Main Dashboard Content -->
+            <!-- You can copy your original dashboard HTML here, including sidebar, stats, charts, etc. -->
+            <div class="flex min-h-screen">
+                <!-- Sidebar -->
+                <aside id="sidebar" class="w-64 bg-white shadow-xl hidden lg:block">
+                    <!-- Sidebar content here (nav, user info, etc.) -->
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 mb-8">
+                            <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-8 h-8 rounded-lg shadow" />
+                            <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">MedFlow</span>
+                        </div>
+                        <nav class="space-y-4">
+                            <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item active" data-section="overview">Overview</a>
+                            <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item" data-section="consultations">Consultations</a>
+                            <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item" data-section="patients">Patients</a>
+                            <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item" data-section="reports">Reports</a>
+                            <a href="#" class="block py-2 px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item" data-section="analytics">Analytics</a>
+                        </nav>
+                    </div>
+                </aside>
+                <!-- Main Content -->
+                <main class="flex-1 p-8 bg-gray-50">
+                    <h2 id="pageTitle" class="text-xl font-semibold text-gray-900 mb-8">Overview</h2>
+                    <!-- Overview Section -->
+                    <div id="overview-section">
+                        <h2 class="text-3xl font-bold mb-6">Welcome to your MedFlow Dashboard</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-blue-100">
+                                        <i data-lucide="calendar" class="h-6 w-6 text-blue-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Total Consultations</p>
+                                        <p id="total-consultations" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-green-100">
+                                        <i data-lucide="users" class="h-6 w-6 text-green-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Active Patients</p>
+                                        <p id="active-patients" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-purple-100">
+                                        <i data-lucide="file-text" class="h-6 w-6 text-purple-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Reports Processed</p>
+                                        <p id="reports-processed" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-orange-100">
+                                        <i data-lucide="clock" class="h-6 w-6 text-orange-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="text-sm font-medium text-gray-600">Pending</p>
+                                        <p id="pending-consultations" class="text-2xl font-bold text-gray-900">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                            <div class="chart-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Consultation Trends</h3>
+                                <canvas id="consultation-chart" height="200"></canvas>
+                            </div>
+                            <div class="chart-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Patient Distribution</h3>
+                                <canvas id="patient-chart" height="200"></canvas>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Consultations</h3>
+                                <div id="recent-consultations" class="space-y-3"></div>
+                            </div>
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Upcoming Appointments</h3>
+                                <div id="upcoming-appointments" class="space-y-3"></div>
+                            </div>
+                            <div class="activity-card">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                                <div class="space-y-3">
+                                    <button id="create-consultation-btn" class="btn-primary flex items-center space-x-2">
+                                        <i data-lucide="plus" class="h-4 w-4"></i>
+                                        <span>New Consultation</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Consultations Section -->
+                    <div id="consultations-section" class="hidden space-y-6">
+                        <h2 class="text-2xl font-bold text-gray-900">All Consultations</h2>
+                        <div id="consultations-container" class="space-y-4"></div>
+                        <div id="loading-spinner" class="hidden text-center py-10">
+                            <i data-lucide="loader-circle" class="animate-spin h-10 w-10 text-blue-600 mx-auto"></i>
+                            <p class="mt-2 text-gray-600">Loading consultations...</p>
+                        </div>
+                    </div>
+                    <!-- Patients Section -->
+                    <div id="patients-section" class="hidden space-y-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Patients</h2>
+                        <!-- Add patient list/table here -->
+                    </div>
+                    <!-- Reports Section -->
+                    <div id="reports-section" class="hidden space-y-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Reports</h2>
+                        <!-- Add reports list/table here -->
+                    </div>
+                    <!-- Analytics Section -->
+                    <div id="analytics-section" class="hidden space-y-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Analytics</h2>
+                        <!-- Add analytics content here -->
+                    </div>
+                    <!-- New Consultation Modal (hidden by default) -->
+                    <div id="create-consultation-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+                        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0" id="modal-content">
+                            <!-- Modal Header -->
+                            <div class="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 sm:p-8 flex-shrink-0">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                                            <i data-lucide="calendar-plus" class="h-6 w-6"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-2xl font-bold">New Consultation</h3>
+                                            <p class="text-blue-100 text-sm mt-1">Schedule a new medical consultation</p>
+                                        </div>
+                                    </div>
+                                    <button id="close-modal-btn" class="p-3 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-all duration-200">
+                                        <i data-lucide="x" class="h-5 w-5"></i>
+                                    </button>
+                                </div>
+                                <!-- Progress Steps -->
+                                <div class="mt-6 flex items-center space-x-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="step-indicator active" data-step="1">
+                                            <span class="step-number">1</span>
+                                        </div>
+                                        <span class="step-label text-sm font-medium">Details</span>
+                                    </div>
+                                    <div class="flex-1 h-0.5 bg-white/30 rounded-full">
+                                        <div class="progress-bar h-full bg-white rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="step-indicator" data-step="2">
+                                            <span class="step-number">2</span>
+                                        </div>
+                                        <span class="step-label text-sm font-medium">Schedule</span>
+                                    </div>
+                                    <div class="flex-1 h-0.5 bg-white/30 rounded-full">
+                                        <div class="progress-bar h-full bg-white rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="step-indicator" data-step="3">
+                                            <span class="step-number">3</span>
+                                        </div>
+                                        <span class="step-label text-sm font-medium">Confirm</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Modal Body -->
+                            <div class="p-4 sm:p-8 flex-1 overflow-y-auto">
+                                <form id="create-consultation-form" class="space-y-6 sm:space-y-8">
+                                    <!-- Step 1: Consultation Details -->
+                                    <div id="step-1" class="step-content active">
+                                        <div class="space-y-6">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div class="space-y-2">
+                                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                        <i data-lucide="user" class="h-4 w-4 text-blue-600"></i>
+                                                        <span>Consultation Type</span>
+                                                    </label>
+                                                    <select id="consultation-type" class="input-field-modern" required>
+                                                        <option value="">Select consultation type...</option>
+                                                        <option value="general">General Checkup</option>
+                                                        <option value="specialist">Specialist Consultation</option>
+                                                        <option value="followup">Follow-up Visit</option>
+                                                        <option value="emergency">Emergency Visit</option>
+                                                        <option value="routine">Routine Examination</option>
+                                                    </select>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                        <i data-lucide="clock" class="h-4 w-4 text-blue-600"></i>
+                                                        <span>Duration</span>
+                                                    </label>
+                                                    <select id="consultation-duration" class="input-field-modern">
+                                                        <option value="30">30 minutes</option>
+                                                        <option value="45" selected>45 minutes</option>
+                                                        <option value="60">1 hour</option>
+                                                        <option value="90">1.5 hours</option>
+                                                        <option value="120">2 hours</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div id="participant-fields"></div>
+                                            <div class="space-y-2">
+                                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                    <i data-lucide="message-square" class="h-4 w-4 text-blue-600"></i>
+                                                    <span>Reason for Visit</span>
+                                                </label>
+                                                <textarea id="consultation-reason" rows="4" class="input-field-modern" placeholder="Describe the symptoms, concerns, or reason for this consultation..."></textarea>
+                                                <p class="text-xs text-gray-500 mt-1">This helps us prepare better for your visit</p>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                    <i data-lucide="file-text" class="h-4 w-4 text-blue-600"></i>
+                                                    <span>Additional Notes</span>
+                                                </label>
+                                                <textarea id="consultation-notes" rows="3" class="input-field-modern" placeholder="Any additional information, special requirements, or notes..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Step 2: Scheduling -->
+                                    <div id="step-2" class="step-content hidden">
+                                        <div class="space-y-6">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div class="space-y-2">
+                                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                        <i data-lucide="calendar" class="h-4 w-4 text-blue-600"></i>
+                                                        <span>Preferred Date</span>
+                                                    </label>
+                                                    <input id="preferred-date" type="date" class="input-field-modern" required>
+                                                </div>
+                                                <div class="space-y-2">
+                                                    <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                        <i data-lucide="clock" class="h-4 w-4 text-blue-600"></i>
+                                                        <span>Preferred Time</span>
+                                                    </label>
+                                                    <input id="preferred-time" type="time" class="input-field-modern" required>
+                                                </div>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                    <i data-lucide="calendar-days" class="h-4 w-4 text-blue-600"></i>
+                                                    <span>Available Time Slots</span>
+                                                </label>
+                                                <div id="time-slots" class="grid grid-cols-3 gap-3"></div>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-sm font-semibold text-gray-700 flex items-center space-x-2">
+                                                    <i data-lucide="map-pin" class="h-4 w-4 text-blue-600"></i>
+                                                    <span>Location</span>
+                                                </label>
+                                                <select id="consultation-location" class="input-field-modern">
+                                                    <option value="clinic">Main Clinic</option>
+                                                    <option value="video">Video Consultation</option>
+                                                    <option value="home">Home Visit</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Step 3: Confirmation -->
+                                    <div id="step-3" class="step-content hidden">
+                                        <div class="space-y-6">
+                                            <div class="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                                                <h4 class="text-lg font-semibold text-blue-900 mb-4 flex items-center space-x-2">
+                                                    <i data-lucide="check-circle" class="h-5 w-5"></i>
+                                                    <span>Consultation Summary</span>
+                                                </h4>
+                                                <div id="consultation-summary" class="space-y-3 text-sm"></div>
+                                            </div>
+                                            <div class="space-y-4">
+                                                <div class="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                                                    <input type="checkbox" id="confirm-terms" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                                                    <label for="confirm-terms" class="text-sm text-gray-700">
+                                                        I confirm that all information provided is accurate and I agree to the consultation terms
+                                                    </label>
+                                                </div>
+                                                <div class="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                                                    <input type="checkbox" id="send-reminder" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" checked>
+                                                    <label for="send-reminder" class="text-sm text-gray-700">
+                                                        Send me a reminder 24 hours before the consultation
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- Modal Footer -->
+                            <div class="px-4 sm:px-8 py-4 sm:py-6 bg-gray-50 border-t border-gray-200 flex-shrink-0">
+                                <div class="flex items-center justify-between">
+                                    <button id="cancel-modal-btn" type="button" class="btn-secondary-modern">
+                                        <i data-lucide="x" class="h-4 w-4 mr-2"></i>
+                                        Cancel
+                                    </button>
+                                    <div class="flex items-center space-x-3">
+                                        <button id="prev-step-btn" type="button" class="btn-secondary-modern hidden">
+                                            <i data-lucide="arrow-left" class="h-4 w-4 mr-2"></i>
+                                            Previous
+                                        </button>
+                                        <button id="next-step-btn" type="button" class="btn-primary-modern">
+                                            <span>Next Step</span>
+                                            <i data-lucide="arrow-right" class="h-4 w-4 ml-2"></i>
+                                        </button>
+                                        <button id="submit-consultation-btn" type="submit" class="btn-primary-modern hidden">
+                                            <i data-lucide="check" class="h-4 w-4 mr-2"></i>
+                                            <span>Schedule Consultation</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+    <footer class="w-full border-t border-gray-100 py-8 bg-white text-center text-gray-500 text-sm mt-12">
+        &copy; 2024 MedFlow. All rights reserved.
+    </footer>
+    <script src="js/api.js?v=2"></script>
+    <script src="js/dashboard.js?v=4"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    <script>
+        // Authentication check: redirect to login if not authenticated
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = "index.html";
+        }
+    </script>
+    <!-- Optionally, add a loading spinner and error message placeholder -->
+    <div id="dashboard-loading" class="fixed inset-0 flex items-center justify-center bg-white bg-opacity-80 z-50" style="display:none;">
+        <div class="flex flex-col items-center">
+            <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>
+            <p class="mt-4 text-lg text-gray-700 font-semibold">Loading dashboard...</p>
+        </div>
+    </div>
+    <div id="dashboard-error" class="hidden fixed top-0 left-0 w-full bg-red-100 text-red-700 text-center py-3 font-semibold z-50"></div>
+    <script>
+    // Show loading spinner while fetching data
+    function showDashboardLoading() {
+        document.getElementById('dashboard-loading').style.display = 'flex';
+    }
+    function hideDashboardLoading() {
+        document.getElementById('dashboard-loading').style.display = 'none';
+    }
+    function showDashboardError(msg) {
+        const err = document.getElementById('dashboard-error');
+        err.textContent = msg;
+        err.classList.remove('hidden');
+    }
+    // Example usage in dashboard.js: call showDashboardLoading() before API calls, hideDashboardLoading() after, and showDashboardError(msg) on error.
+    </script>
+    <script>
+        // Debug: confirm pageTitle exists
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('pageTitle:', document.getElementById('pageTitle'));
+        });
+    </script>
+</body>
+</html> 

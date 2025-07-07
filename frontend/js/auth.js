@@ -12,12 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutBtn = document.getElementById('logout-btn');
 
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (token && window.location.pathname.endsWith('index.html')) {
         showDashboard();
     }
 
     authToggle.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         if (loginForm.classList.contains('hidden')) {
             loginForm.classList.remove('hidden');
             registerForm.classList.add('hidden');
@@ -46,7 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             localStorage.setItem('accessToken', data.access_token);
             await fetchAndStoreCurrentUser(data.access_token);
-            window.location.reload();
+            // Debug log
+            console.log('Token after login:', localStorage.getItem('accessToken'));
+            window.location.href = "dashboard.html";
         } catch (error) {
             authError.textContent = error.message;
         }
@@ -70,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const loginData = await loginResponse.json();
             localStorage.setItem('accessToken', loginData.access_token);
             await fetchAndStoreCurrentUser(loginData.access_token);
-            window.location.reload();
+            // Debug log
+            console.log('Token after registration:', localStorage.getItem('accessToken'));
+            window.location.href = "dashboard.html";
         } catch (error) {
             authError.textContent = error.message;
         }
@@ -99,8 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDashboard() {
-        authView.classList.add('hidden');
-        dashboardView.classList.remove('hidden');
-        // loadDashboardData() is called by dashboard.js when it initializes
+        window.location.href = "dashboard.html";
     }
 });
