@@ -78,26 +78,27 @@ class DocumentService:
 
     def process_and_store_report(self, file_path: str, consultation_id: int) -> str:
         """
-        Processes an uploaded report file based on its type, stores embeddings
-        if it's a text file, and returns an AI-generated summary.
+        Processes an uploaded report file based on its type, and returns an AI-generated summary.
+        Qdrant is bypassed: no embeddings or vector DB storage.
         """
         _, file_extension = os.path.splitext(file_path)
         file_ext_lower = file_extension.lower()
 
         if file_ext_lower in TEXT_EXTENSIONS:
-            # For text files, we also create vector embeddings for the RAG agent
-            print(f"Processing TEXT document for consultation {consultation_id}")
-            documents = PyPDFLoader(file_path).load() if file_ext_lower == '.pdf' else Docx2txtLoader(file_path).load()
-            chunks = self.text_splitter.split_documents(documents)
-            collection_name = f"consultation_{consultation_id}"
-            Qdrant.from_documents(
-                documents=chunks, embedding=self.embeddings,
-                host=settings.QDRANT_HOST, port=settings.QDRANT_PORT,
-                collection_name=collection_name, force_recreate=True,
-            )
-            print(f"Successfully stored text embeddings for consultation {consultation_id}")
-            # Now generate the summary
-            return self._generate_summary_for_text(file_path)
+            print(f"Processing TEXT document for consultation {consultation_id} (Qdrant bypassed)")
+            # Load and concatenate all text, then summarize
+            if file_ext_lower == '.pdf':
+                loader = PyPDFLoader(file_path)
+                docs = loader.load()
+                full_text = "\n".join([doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in docs])
+            else:
+                loader = Docx2txtLoader(file_path)
+                docs = loader.load()
+                full_text = "\n".join([doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in docs])
+            # Summarize using LLM directly
+            summarize_chain = load_summarize_chain(self.llm, chain_type="map_reduce")
+            summary_result = summarize_chain.run([full_text])
+            return summary_result
 
         elif file_ext_lower in IMAGE_EXTENSIONS:
             # For image files, we only generate a summary
