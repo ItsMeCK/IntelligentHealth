@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -17,29 +16,29 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-        
+
         .animate-fade-in {
             animation: fadeIn 0.3s ease-out;
         }
-        
+
         .animate-slide-in {
             animation: slideIn 0.3s ease-out;
         }
-        
+
         .animate-pulse-slow {
             animation: pulse 2s infinite;
         }
-        
+
         /* Enhanced chat styling */
         #chat-window {
             scrollbar-width: thin;
@@ -48,58 +47,58 @@
             overflow-x: hidden;
             max-height: calc(60vh - 140px);
         }
-        
+
         #chat-window::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         #chat-window::-webkit-scrollbar-track {
             background: #f7fafc;
             border-radius: 3px;
         }
-        
+
         #chat-window::-webkit-scrollbar-thumb {
             background: #cbd5e0;
             border-radius: 3px;
         }
-        
+
         #chat-window::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
         }
-        
+
         /* Prevent chat from affecting main page scroll */
         #ai-chat-widget {
             pointer-events: auto;
         }
-        
+
         #ai-chat-widget * {
             pointer-events: auto;
         }
-        
+
         /* Ensure chat window is isolated */
         #chat-widget-body {
             isolation: isolate;
         }
-        
+
         /* Message bubble animations */
         .chat-message-enter {
             opacity: 0;
             transform: translateY(20px);
         }
-        
+
         .chat-message-enter-active {
             opacity: 1;
             transform: translateY(0);
             transition: all 0.3s ease-out;
         }
-        
+
         /* Typing indicator enhancements */
         .typing-dots {
             display: inline-flex;
             align-items: center;
             gap: 4px;
         }
-        
+
         .typing-dots span {
             width: 8px;
             height: 8px;
@@ -107,24 +106,24 @@
             background-color: #9ca3af;
             animation: typing-bounce 1.4s infinite ease-in-out;
         }
-        
+
         .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
         .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-        
+
         @keyframes typing-bounce {
             0%, 80%, 100% { transform: scale(0); }
             40% { transform: scale(1); }
         }
-        
+
         /* Chat widget enhancements */
         #ai-chat-widget {
             transition: all 0.3s ease-in-out;
         }
-        
+
         #chat-widget-body {
             transition: all 0.3s ease-in-out;
         }
-        
+
         /* Input field enhancements */
         #ai-question-input {
             transition: all 0.2s ease-in-out;
@@ -132,17 +131,17 @@
             min-height: 44px;
             max-height: 120px;
         }
-        
+
         #ai-question-input:focus {
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
         /* Button hover effects */
         .btn-primary:hover {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        
+
         /* Message timestamp */
         .message-timestamp {
             font-size: 0.75rem;
@@ -286,400 +285,423 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
+    <!-- FIX: Authentication Check Script -->
+    <script>
+        // This script runs immediately. If the user is not logged in, redirect to the homepage.
+        if (!localStorage.getItem('accessToken')) {
+            window.location.href = 'index.html';
+        }
+    </script>
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <a href="index.html" class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                        <i data-lucide="heart-pulse" class="h-5 w-5 text-white"></i>
-                    </div>
-                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">MedFlow</h1>
-                </a>
-                <div class="hidden md:block w-px h-6 bg-gray-300"></div>
-                <div class="flex items-center space-x-2">
-                    <i data-lucide="calendar" class="h-5 w-5 text-gray-400"></i>
-                    <span class="text-sm font-medium text-gray-600">Consultation</span>
-                </div>
+    <!-- Sticky Top Navigation Bar -->
+    <header class="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
+            <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg bg-blue-50 text-blue-700 mr-2"><i data-lucide="menu" class="h-6 w-6"></i></button>
+                <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-10 h-10 rounded-lg shadow" />
+                <span class="text-2xl font-extrabold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">MedFlow</span>
             </div>
-            <div class="flex items-center space-x-4">
-                <a href="index.html" class="btn-secondary flex items-center space-x-2">
-                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
-                    <span>Back to Dashboard</span>
-                </a>
-            </div>
+            <nav class="hidden md:flex items-center gap-8 text-gray-700 font-medium">
+                <a href="index.html#features" class="hover:text-blue-700 transition">Features</a>
+                <a href="index.html#about" class="hover:text-blue-700 transition">About</a>
+                <button id="logout-btn" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:scale-105 transition-transform">Logout</button>
+            </nav>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Consultation Details -->
-        <div id="consultation-details-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8"></div>
+    <!-- FIX: Main layout container -->
+    <div class="flex h-screen pt-16"> <!-- pt-16 pushes content below the fixed header (h-16 = 4rem = 64px) -->
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden lg:hidden transition-opacity duration-300"></div>
 
-        <!-- Doctor Features Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- DDx Section -->
-            <div id="ddx-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-purple-100 rounded-lg">
-                            <i data-lucide="brain-circuit" class="h-6 w-6 text-purple-600"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-900">Differential Diagnosis</h3>
-                    </div>
-                    <button id="generate-ddx-btn" class="btn-primary flex items-center space-x-2">
-                        <i data-lucide="zap" class="h-4 w-4"></i>
-                        <span>Generate DDx</span>
-                    </button>
-                </div>
-                <div id="ddx-status" class="text-sm font-medium text-gray-600 mb-4"></div>
-                <div id="ddx-result-display" class="h-80 bg-gray-50 rounded-xl border border-gray-200 overflow-y-auto">
-                    <div class="p-4">
-                        <div class="flex items-center space-x-3 mb-4">
-                            <i data-lucide="lightbulb" class="h-5 w-5 text-yellow-500"></i>
-                            <span class="font-medium text-gray-900">AI-Powered Diagnosis</span>
-                        </div>
-                        <div class="prose prose-sm max-w-none">
-                            <p class="text-gray-600">Click "Generate DDx" to get an AI-powered differential diagnosis based on all available patient data and medical reports.</p>
-                        </div>
-                    </div>
-                </div>
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-full max-w-xs lg:w-64 bg-white shadow-xl fixed lg:static z-50 transform -translate-x-full lg:translate-x-0 lg:block transition-transform duration-300 h-full top-0 left-0 lg:top-auto lg:left-auto lg:h-auto overflow-y-auto">
+            <!-- Mobile Close Button -->
+            <div class="flex justify-end lg:hidden p-4">
+                <button id="close-sidebar-btn" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"><i data-lucide="x" class="h-6 w-6"></i></button>
             </div>
-
-            <!-- Scribe Section -->
-            <div id="scribe-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-green-100 rounded-lg">
-                            <i data-lucide="mic" class="h-6 w-6 text-green-600"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold text-gray-900">Ambient Scribe</h3>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                            <i data-lucide="zap" class="h-3 w-3 inline mr-1"></i>
-                            AI-Powered
-                        </span>
-                    </div>
+            <div class="p-4 sm:p-6">
+                <div class="flex items-center gap-3 mb-6 sm:mb-8">
+                    <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-8 h-8 rounded-lg shadow" />
+                    <span class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">MedFlow</span>
                 </div>
-                
-                <!-- Recording Controls -->
-                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 mb-4">
-                    <div class="flex items-center justify-between mb-3">
+                <nav class="space-y-2 sm:space-y-4">
+                    <a href="dashboard.html" class="block py-2 px-3 sm:px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item">Dashboard</a>
+                    <a href="#" class="block py-2 px-3 sm:px-4 rounded-lg text-gray-700 hover:bg-blue-50 nav-item active">Consultation</a>
+                    <button id="logout-btn-mobile" class="w-full mt-6 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:scale-105 transition-transform lg:hidden">Logout</button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-8">
+            <!-- Consultation Details -->
+            <div id="consultation-details-container" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 mb-6 sm:mb-8"></div>
+
+            <!-- Doctor Features Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-6 sm:mb-8">
+                <!-- DDx Section -->
+                <div id="ddx-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 flex flex-col mb-4 lg:mb-0">
+                    <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center space-x-3">
-                            <button id="record-btn" class="btn-primary flex items-center space-x-2">
-                                <i data-lucide="mic" class="h-5 w-5"></i>
-                                <span>Start Recording</span>
-                            </button>
-                            <div id="recording-indicator" class="hidden flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                                <span class="text-sm font-medium text-red-600">Recording...</span>
+                            <div class="p-2 bg-purple-100 rounded-lg">
+                                <i data-lucide="brain-circuit" class="h-6 w-6 text-purple-600"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900">Differential Diagnosis</h3>
+                        </div>
+                        <button id="generate-ddx-btn" class="btn-primary flex items-center space-x-2">
+                            <i data-lucide="zap" class="h-4 w-4"></i>
+                            <span>Generate DDx</span>
+                        </button>
+                    </div>
+                    <div id="ddx-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+                    <div id="ddx-result-display" class="h-80 bg-gray-50 rounded-xl border border-gray-200 overflow-y-auto">
+                        <div class="p-4">
+                            <div class="flex items-center space-x-3 mb-4">
+                                <i data-lucide="lightbulb" class="h-5 w-5 text-yellow-500"></i>
+                                <span class="font-medium text-gray-900">AI-Powered Diagnosis</span>
+                            </div>
+                            <div class="prose prose-sm max-w-none">
+                                <p class="text-gray-600">Click "Generate DDx" to get an AI-powered differential diagnosis based on all available patient data and medical reports.</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button id="clear-note-btn" class="btn-secondary flex items-center space-x-2">
-                                <i data-lucide="trash-2" class="h-4 w-4"></i>
-                                <span>Clear</span>
-                            </button>
-                            <button id="save-note-btn" class="btn-primary flex items-center space-x-2">
-                                <i data-lucide="save" class="h-4 w-4"></i>
-                                <span>Save</span>
-                            </button>
-                        </div>
                     </div>
-                    <p id="recording-status" class="text-sm font-medium text-gray-600">Click "Start Recording" to begin capturing consultation audio for SOAP note generation.</p>
                 </div>
-                
-                <!-- SOAP Note Display -->
-                <div class="flex-1 flex flex-col">
-                    <div class="flex items-center justify-between mb-3">
-                        <label class="text-sm font-medium text-gray-700">Generated SOAP Note</label>
+
+                <!-- Scribe Section -->
+                <div id="scribe-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-8 flex flex-col">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-green-100 rounded-lg">
+                                <i data-lucide="mic" class="h-6 w-6 text-green-600"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900">Ambient Scribe</h3>
+                        </div>
                         <div class="flex items-center space-x-2">
-                            <span id="note-status" class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                                Ready
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                                <i data-lucide="zap" class="h-3 w-3 inline mr-1"></i>
+                                AI-Powered
                             </span>
                         </div>
                     </div>
-                    <textarea id="soap-note-display" class="h-80 input-field resize-none font-mono text-sm" placeholder="Generated SOAP note will appear here after processing..."></textarea>
-                    <div class="flex items-center space-x-2 text-xs text-gray-500 mt-2">
-                        <i data-lucide="info" class="h-3 w-3"></i>
-                        <span>Speak clearly during recording for best results. The AI will generate a structured SOAP note from your audio.</span>
+
+                    <!-- Recording Controls -->
+                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200 mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <button id="record-btn" class="btn-primary flex items-center space-x-2">
+                                    <i data-lucide="mic" class="h-5 w-5"></i>
+                                    <span>Start Recording</span>
+                                </button>
+                                <div id="recording-indicator" class="hidden flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                                    <span class="text-sm font-medium text-red-600">Recording...</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="clear-note-btn" class="btn-secondary flex items-center space-x-2">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    <span>Clear</span>
+                                </button>
+                                <button id="save-note-btn" class="btn-primary flex items-center space-x-2">
+                                    <i data-lucide="save" class="h-4 w-4"></i>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                        </div>
+                        <p id="recording-status" class="text-sm font-medium text-gray-600">Click "Start Recording" to begin capturing consultation audio for SOAP note generation.</p>
+                    </div>
+
+                    <!-- SOAP Note Display -->
+                    <div class="flex-1 flex flex-col">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="text-sm font-medium text-gray-700">Generated SOAP Note</label>
+                            <div class="flex items-center space-x-2">
+                                <span id="note-status" class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                                    Ready
+                                </span>
+                            </div>
+                        </div>
+                        <textarea id="soap-note-display" class="h-80 input-field resize-none font-mono text-sm" placeholder="Generated SOAP note will appear here after processing..."></textarea>
+                        <div class="flex items-center space-x-2 text-xs text-gray-500 mt-2">
+                            <i data-lucide="info" class="h-3 w-3"></i>
+                            <span>Speak clearly during recording for best results. The AI will generate a structured SOAP note from your audio.</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Patient History -->
-        <div id="patient-history-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <i data-lucide="history" class="h-6 w-6 text-blue-600"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900">Patient History</h3>
-            </div>
-            <div id="patient-history-list" class="space-y-4">
-                <!-- Patient history will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Reports Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center space-x-3">
-                    <div class="p-2 bg-orange-100 rounded-lg">
-                        <i data-lucide="file-text" class="h-6 w-6 text-orange-600"></i>
+            <!-- Patient History -->
+            <div id="patient-history-section" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i data-lucide="history" class="h-6 w-6 text-blue-600"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900">Medical Reports</h3>
+                    <h3 class="text-xl font-semibold text-gray-900">Patient History</h3>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button class="btn-secondary flex items-center space-x-2">
-                        <i data-lucide="upload" class="h-4 w-4"></i>
-                        <span>Upload Report</span>
-                    </button>
+                <div id="patient-history-list" class="space-y-4">
+                    <!-- Patient history will be loaded here -->
                 </div>
-            </div>
-            
-            <!-- Upload Form -->
-            <form id="upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                <div class="text-center">
-                    <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400 mb-4"></i>
-                    <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Medical Report</h4>
-                    <p class="text-sm text-gray-600 mb-4">Drag and drop files here, or click to select</p>
-                    <input type="file" id="report-file" required class="input-field" accept=".pdf,.docx,.png,.jpg,.jpeg" />
-                    <button type="submit" class="btn-primary mt-4">Upload & Process</button>
-                </div>
-                <div id="upload-status" class="mt-4 text-sm font-medium"></div>
-            </form>
-            
-            <!-- Reports List -->
-            <div id="reports-list-container" class="space-y-4">
-                <!-- Reports will be loaded here -->
             </div>
 
-            <!-- Patient Summary Section -->
-            <div id="patient-summary-section" class="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <!-- Reports Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center space-x-3">
-                        <div class="p-2 bg-green-100 rounded-lg">
-                            <i data-lucide="file-text" class="h-6 w-6 text-green-600"></i>
+                        <div class="p-2 bg-orange-100 rounded-lg">
+                            <i data-lucide="file-text" class="h-6 w-6 text-orange-600"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-900">Patient Summary</h3>
+                        <h3 class="text-xl font-semibold text-gray-900">Medical Reports</h3>
                     </div>
-                    <div class="flex items-center space-x-3">
-                        <button id="generate-summary-btn" class="btn-primary flex items-center space-x-2">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            <span>Generate Summary</span>
-                        </button>
-                        <button id="download-pdf-btn" class="btn-secondary flex items-center space-x-2 hidden">
-                            <i data-lucide="download" class="h-4 w-4"></i>
-                            <span>Download PDF</span>
-                        </button>
-                        <button id="print-summary-btn" class="btn-secondary flex items-center space-x-2 hidden">
-                            <i data-lucide="printer" class="h-4 w-4"></i>
-                            <span>Print</span>
+                    <div class="flex items-center space-x-4">
+                        <button class="btn-secondary flex items-center space-x-2">
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            <span>Upload Report</span>
                         </button>
                     </div>
                 </div>
-                
-                <div id="summary-status" class="text-sm font-medium text-gray-600 mb-4"></div>
-                
-                <!-- Summary Content -->
-                <div id="summary-content" class="hidden">
-                    <div class="bg-white rounded-xl p-6 border border-gray-200">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                            <i data-lucide="user" class="h-5 w-5 text-green-600"></i>
-                            <span>Patient Summary</span>
-                        </h4>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label for="summary-edit" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Summary
-                                </label>
-                                <textarea id="summary-edit" rows="8" 
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter or edit the patient summary here..."
-                                    ></textarea>
+
+                <!-- Upload Form -->
+                <form id="upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                    <div class="text-center">
+                        <i data-lucide="upload-cloud" class="mx-auto h-12 w-12 text-gray-400 mb-4"></i>
+                        <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Medical Report</h4>
+                        <p class="text-sm text-gray-600 mb-4">Drag and drop files here, or click to select</p>
+                        <input type="file" id="report-file" required class="input-field" accept=".pdf,.docx,.png,.jpg,.jpeg" />
+                        <button type="submit" class="btn-primary mt-4">Upload & Process</button>
+                    </div>
+                    <div id="upload-status" class="mt-4 text-sm font-medium"></div>
+                </form>
+
+                <!-- Reports List -->
+                <div id="reports-list-container" class="space-y-4">
+                    <!-- Reports will be loaded here -->
+                </div>
+
+                <!-- Patient Summary Section -->
+                <div id="patient-summary-section" class="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-green-100 rounded-lg">
+                                <i data-lucide="file-text" class="h-6 w-6 text-green-600"></i>
                             </div>
-                            
-                            <div>
-                                <label class="text-sm font-semibold text-gray-700">Medications</label>
-                                <div id="medications-container" class="space-y-2 mt-2">
-                                    <div class="flex items-center space-x-2">
-                                        <input type="text" class="medication-input input-field-modern flex-1" placeholder="Enter medication name and dosage">
-                                        <button type="button" class="add-medication-btn btn-secondary-modern px-3 py-2">
-                                            <i data-lucide="plus" class="h-4 w-4"></i>
+                            <h3 class="text-xl font-semibold text-gray-900">Patient Summary</h3>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button id="generate-summary-btn" class="btn-primary flex items-center space-x-2">
+                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                <span>Generate Summary</span>
+                            </button>
+                            <button id="download-pdf-btn" class="btn-secondary flex items-center space-x-2 hidden">
+                                <i data-lucide="download" class="h-4 w-4"></i>
+                                <span>Download PDF</span>
+                            </button>
+                            <button id="print-summary-btn" class="btn-secondary flex items-center space-x-2 hidden">
+                                <i data-lucide="printer" class="h-4 w-4"></i>
+                                <span>Print</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="summary-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+
+                    <!-- Summary Content -->
+                    <div id="summary-content" class="hidden">
+                        <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                                <i data-lucide="user" class="h-5 w-5 text-green-600"></i>
+                                <span>Patient Summary</span>
+                            </h4>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="summary-edit" class="block text-sm font-medium text-gray-700 mb-2">
+                                        Summary
+                                    </label>
+                                    <textarea id="summary-edit" rows="8"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter or edit the patient summary here..."
+                                        ></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-semibold text-gray-700">Medications</label>
+                                    <div id="medications-container" class="space-y-2 mt-2">
+                                        <div class="flex items-center space-x-2">
+                                            <input type="text" class="medication-input input-field-modern flex-1" placeholder="Enter medication name and dosage">
+                                            <button type="button" class="add-medication-btn btn-secondary-modern px-3 py-2">
+                                                <i data-lucide="plus" class="h-4 w-4"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-semibold text-gray-700">Recommendations</label>
+                                    <textarea id="recommendations-edit" rows="4" class="input-field-modern mt-2" placeholder="Enter recommendations..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-semibold text-gray-700">Follow-up Instructions</label>
+                                    <textarea id="follow-up-edit" rows="4" class="input-field-modern mt-2" placeholder="Enter follow-up instructions..."></textarea>
+                                </div>
+
+                                <!-- Action buttons at the bottom -->
+                                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                                    <div class="flex items-center space-x-3">
+                                        <button id="print-summary-btn" class="btn-secondary-modern">
+                                            <i data-lucide="printer" class="h-4 w-4 mr-2"></i>
+                                            <span>Print</span>
+                                        </button>
+                                        <button id="download-pdf-btn" class="btn-secondary-modern">
+                                            <i data-lucide="download" class="h-4 w-4 mr-2"></i>
+                                            <span>Download PDF</span>
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <button id="save-summary-btn" class="btn-primary-modern">
+                                            <i data-lucide="save" class="h-4 w-4 mr-2"></i>
+                                            <span>Save Summary</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div>
-                                <label class="text-sm font-semibold text-gray-700">Recommendations</label>
-                                <textarea id="recommendations-edit" rows="4" class="input-field-modern mt-2" placeholder="Enter recommendations..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Analysis Section -->
+                <div id="report-analysis-section" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2 bg-blue-100 rounded-lg">
+                                <i data-lucide="brain" class="h-6 w-6 text-blue-600"></i>
                             </div>
-                            
-                            <div>
-                                <label class="text-sm font-semibold text-gray-700">Follow-up Instructions</label>
-                                <textarea id="follow-up-edit" rows="4" class="input-field-modern mt-2" placeholder="Enter follow-up instructions..."></textarea>
+                            <h3 class="text-xl font-semibold text-gray-900">AI Report Analysis</h3>
+                        </div>
+                        <button id="analyze-reports-btn" class="btn-primary flex items-center space-x-2">
+                            <i data-lucide="zap" class="h-4 w-4"></i>
+                            <span>Analyze Reports</span>
+                        </button>
+                    </div>
+
+                    <div id="analysis-status" class="text-sm font-medium text-gray-600 mb-4"></div>
+
+                    <!-- Analysis Results -->
+                    <div id="analysis-results" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Key Findings -->
+                            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                                    <i data-lucide="target" class="h-4 w-4 text-blue-600"></i>
+                                    <span>Key Findings</span>
+                                </h4>
+                                <div id="key-findings" class="text-sm text-gray-700 space-y-2">
+                                    <p class="text-gray-500">Click "Analyze Reports" to generate key findings</p>
+                                </div>
                             </div>
-                            
-                            <!-- Action buttons at the bottom -->
-                            <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-                                <div class="flex items-center space-x-3">
-                                    <button id="print-summary-btn" class="btn-secondary-modern">
-                                        <i data-lucide="printer" class="h-4 w-4 mr-2"></i>
-                                        <span>Print</span>
-                                    </button>
-                                    <button id="download-pdf-btn" class="btn-secondary-modern">
-                                        <i data-lucide="download" class="h-4 w-4 mr-2"></i>
-                                        <span>Download PDF</span>
-                                    </button>
+
+                            <!-- Abnormal Values -->
+                            <div class="bg-white rounded-xl p-4 border border-gray-200">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                                    <i data-lucide="alert-triangle" class="h-4 w-4 text-orange-600"></i>
+                                    <span>Abnormal Values</span>
+                                </h4>
+                                <div id="abnormal-values" class="text-sm text-gray-700 space-y-2">
+                                    <p class="text-gray-500">Click "Analyze Reports" to identify abnormal values</p>
                                 </div>
-                                <div class="flex items-center space-x-3">
-                                    <button id="save-summary-btn" class="btn-primary-modern">
-                                        <i data-lucide="save" class="h-4 w-4 mr-2"></i>
-                                        <span>Save Summary</span>
-                                    </button>
-                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Comprehensive Summary -->
+                        <div class="bg-white rounded-xl p-4 border border-gray-200">
+                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                                <i data-lucide="file-text" class="h-4 w-4 text-green-600"></i>
+                                <span>Comprehensive Summary</span>
+                            </h4>
+                            <div id="comprehensive-summary" class="text-sm text-gray-700 prose prose-sm max-w-none">
+                                <p class="text-gray-500">Click "Analyze Reports" to generate a comprehensive summary</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Report Analysis Section -->
-            <div id="report-analysis-section" class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+            <!-- Radiology Image Analysis Section -->
+            <div id="radiology-analysis-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
                 <div class="flex items-center justify-between mb-6">
                     <div class="flex items-center space-x-3">
                         <div class="p-2 bg-blue-100 rounded-lg">
-                            <i data-lucide="brain" class="h-6 w-6 text-blue-600"></i>
+                            <i data-lucide="scan-eye" class="h-6 w-6 text-blue-600"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-900">AI Report Analysis</h3>
+                        <h3 class="text-xl font-semibold text-gray-900">Expert Radiologist Co-Pilot</h3>
                     </div>
-                    <button id="analyze-reports-btn" class="btn-primary flex items-center space-x-2">
-                        <i data-lucide="zap" class="h-4 w-4"></i>
-                        <span>Analyze Reports</span>
-                    </button>
                 </div>
-                
-                <div id="analysis-status" class="text-sm font-medium text-gray-600 mb-4"></div>
-                
-                <!-- Analysis Results -->
-                <div id="analysis-results" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Key Findings -->
-                        <div class="bg-white rounded-xl p-4 border border-gray-200">
-                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                                <i data-lucide="target" class="h-4 w-4 text-blue-600"></i>
-                                <span>Key Findings</span>
-                            </h4>
-                            <div id="key-findings" class="text-sm text-gray-700 space-y-2">
-                                <p class="text-gray-500">Click "Analyze Reports" to generate key findings</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Abnormal Values -->
-                        <div class="bg-white rounded-xl p-4 border border-gray-200">
-                            <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                                <i data-lucide="alert-triangle" class="h-4 w-4 text-orange-600"></i>
-                                <span>Abnormal Values</span>
-                            </h4>
-                            <div id="abnormal-values" class="text-sm text-gray-700 space-y-2">
-                                <p class="text-gray-500">Click "Analyze Reports" to identify abnormal values</p>
-                            </div>
-                        </div>
+                <form id="radiology-upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-blue-300">
+                    <div class="text-center">
+                        <i data-lucide="image" class="mx-auto h-12 w-12 text-blue-400 mb-4"></i>
+                        <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Radiology Image</h4>
+                        <p class="text-sm text-gray-600 mb-4">Drag and drop a radiology image (CT, MRI, X-ray, etc.), or click to select</p>
+                        <input type="file" id="radiology-image-file" required class="input-field" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff" />
+                        <button type="submit" class="btn-primary mt-4">Analyze Image</button>
                     </div>
-                    
-                    <!-- Comprehensive Summary -->
-                    <div class="bg-white rounded-xl p-4 border border-gray-200">
-                        <h4 class="font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                            <i data-lucide="file-text" class="h-4 w-4 text-green-600"></i>
-                            <span>Comprehensive Summary</span>
-                        </h4>
-                        <div id="comprehensive-summary" class="text-sm text-gray-700 prose prose-sm max-w-none">
-                            <p class="text-gray-500">Click "Analyze Reports" to generate a comprehensive summary</p>
-                        </div>
-                    </div>
+                    <div id="radiology-upload-status" class="mt-4 text-sm font-medium"></div>
+                </form>
+                <div id="radiology-progress" class="mb-4 text-sm text-blue-700"></div>
+                <div id="radiology-report-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                        <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
+                        <span>Radiology Report</span>
+                    </h4>
+                    <div id="radiology-report-content" class="prose prose-sm max-w-none"></div>
+                    <button id="download-radiology-report-btn" class="btn-secondary mt-4">Download PDF</button>
                 </div>
             </div>
-        </div>
 
-        <!-- Radiology Image Analysis Section -->
-        <div id="radiology-analysis-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center space-x-3">
+            <!-- Past Radiology Analyses Section -->
+            <div id="past-radiology-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
+                <div class="flex items-center space-x-3 mb-6">
                     <div class="p-2 bg-blue-100 rounded-lg">
-                        <i data-lucide="scan-eye" class="h-6 w-6 text-blue-600"></i>
+                        <i data-lucide="search" class="h-6 w-6 text-blue-600"></i>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900">Expert Radiologist Co-Pilot</h3>
+                    <h3 class="text-xl font-semibold text-gray-900">View Past Radiology Analysis</h3>
+                </div>
+                <form id="fetch-analysis-form" class="flex items-center space-x-4 mb-4">
+                    <input type="number" id="fetch-analysis-id" class="input-field w-40" placeholder="Analysis ID" required />
+                    <button type="submit" class="btn-primary">Fetch Analysis</button>
+                </form>
+                <div id="fetch-analysis-status" class="mb-2 text-sm text-blue-700"></div>
+                <div id="fetched-analysis-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                        <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
+                        <span>Fetched Radiology Report</span>
+                    </h4>
+                    <div id="fetched-analysis-report-content" class="prose prose-sm max-w-none"></div>
+                    <button id="download-fetched-analysis-pdf-btn" class="btn-secondary mt-4">Download PDF</button>
                 </div>
             </div>
-            <form id="radiology-upload-form" class="mb-8 p-6 bg-gray-50 rounded-xl border-2 border-dashed border-blue-300">
-                <div class="text-center">
-                    <i data-lucide="image" class="mx-auto h-12 w-12 text-blue-400 mb-4"></i>
-                    <h4 class="text-lg font-medium text-gray-900 mb-2">Upload Radiology Image</h4>
-                    <p class="text-sm text-gray-600 mb-4">Drag and drop a radiology image (CT, MRI, X-ray, etc.), or click to select</p>
-                    <input type="file" id="radiology-image-file" required class="input-field" accept=".png,.jpg,.jpeg,.bmp,.tif,.tiff" />
-                    <button type="submit" class="btn-primary mt-4">Analyze Image</button>
-                </div>
-                <div id="radiology-upload-status" class="mt-4 text-sm font-medium"></div>
-            </form>
-            <div id="radiology-progress" class="mb-4 text-sm text-blue-700"></div>
-            <div id="radiology-report-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                    <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
-                    <span>Radiology Report</span>
-                </h4>
-                <div id="radiology-report-content" class="prose prose-sm max-w-none"></div>
-                <button id="download-radiology-report-btn" class="btn-secondary mt-4">Download PDF</button>
-            </div>
-        </div>
 
-        <!-- Past Radiology Analyses Section -->
-        <div id="past-radiology-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <i data-lucide="search" class="h-6 w-6 text-blue-600"></i>
+            <!-- Doctor's Radiology Analyses Section -->
+            <div id="doctor-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i data-lucide="stethoscope" class="h-6 w-6 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900">My Radiology Analyses</h3>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900">View Past Radiology Analysis</h3>
-            </div>
-            <form id="fetch-analysis-form" class="flex items-center space-x-4 mb-4">
-                <input type="number" id="fetch-analysis-id" class="input-field w-40" placeholder="Analysis ID" required />
-                <button type="submit" class="btn-primary">Fetch Analysis</button>
-            </form>
-            <div id="fetch-analysis-status" class="mb-2 text-sm text-blue-700"></div>
-            <div id="fetched-analysis-container" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
-                    <i data-lucide="file-text" class="h-5 w-5 text-blue-600"></i>
-                    <span>Fetched Radiology Report</span>
-                </h4>
-                <div id="fetched-analysis-report-content" class="prose prose-sm max-w-none"></div>
-                <button id="download-fetched-analysis-pdf-btn" class="btn-secondary mt-4">Download PDF</button>
-            </div>
-        </div>
-
-        <!-- Doctor's Radiology Analyses Section -->
-        <div id="doctor-analyses-section" class="bg-white rounded-2xl shadow-sm border border-blue-200 p-8 mb-8">
-            <div class="flex items-center space-x-3 mb-6">
-                <div class="p-2 bg-blue-100 rounded-lg">
-                    <i data-lucide="stethoscope" class="h-6 w-6 text-blue-600"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900">My Radiology Analyses</h3>
-            </div>
-            <div id="doctor-analyses-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            <!-- Modal for details -->
-            <div id="analysis-detail-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full relative">
-                    <button id="close-analysis-detail" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
-                        <i data-lucide="x" class="h-6 w-6"></i>
-                    </button>
-                    <div id="analysis-detail-content"></div>
+                <div id="doctor-analyses-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <!-- Modal for details -->
+                <div id="analysis-detail-modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl w-full relative">
+                        <button id="close-analysis-detail" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+                            <i data-lucide="x" class="h-6 w-6"></i>
+                        </button>
+                        <div id="analysis-detail-content"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- Floating Action Button -->
     <div class="fixed bottom-6 right-6 z-50">
@@ -713,7 +735,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Main FAB -->
             <button id="main-fab" class="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-110">
                 <i data-lucide="plus" class="h-6 w-6"></i>
@@ -741,7 +763,7 @@
                     <i data-lucide="chevron-down" class="h-5 w-5 transition-transform duration-300"></i>
                 </div>
             </div>
-            
+
             <!-- Chat Body -->
             <div id="chat-widget-body" class="flex-1 flex flex-col transition-all duration-300 ease-in-out">
                 <div id="chat-window" class="flex-1 p-4 overflow-y-auto" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
@@ -761,7 +783,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Chat Input -->
                 <div class="p-4 border-t border-gray-200 bg-gray-50">
                     <form id="ai-chat-form" class="flex items-center space-x-3">
@@ -777,6 +799,41 @@
         </div>
     </div>
 
+    <script>
+    // FIX: Add event listener for main logout button
+    document.getElementById('logout-btn')?.addEventListener('click', function() {
+        localStorage.removeItem('accessToken');
+        window.location.href = 'index.html';
+    });
+
+    // Mobile sidebar logic
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        sidebarBackdrop.classList.remove('hidden');
+    }
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        sidebarBackdrop.classList.add('hidden');
+    }
+    mobileMenuBtn?.addEventListener('click', openSidebar);
+    closeSidebarBtn?.addEventListener('click', closeSidebar);
+    sidebarBackdrop?.addEventListener('click', closeSidebar);
+    // Hide sidebar on resize to desktop
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+            closeSidebar();
+        }
+    });
+    // Mobile logout button
+    document.getElementById('logout-btn-mobile')?.addEventListener('click', function() {
+        localStorage.removeItem('accessToken');
+        window.location.href = 'index.html';
+    });
+    </script>
     <script src="js/api.js?v=12"></script>
     <script src="js/auth.js"></script>
     <script src="js/consultation_view.js?v=21"></script>

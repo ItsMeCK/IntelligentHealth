@@ -272,7 +272,7 @@ class ConsultationService:
         summary = summary.replace("Key findings:", "The key findings are")
         
         return summary
-    
+
     async def _generate_ai_patient_summary(self, notes: str, soap_note: str, ddx_result: str, reports: list) -> str:
         """
         Generate a patient-friendly summary using OpenAI AI.
@@ -280,60 +280,60 @@ class ConsultationService:
         try:
             from langchain_openai import ChatOpenAI
             from app.core.config import settings
-            
+
             # Initialize OpenAI
             llm = ChatOpenAI(model="gpt-4o", temperature=0.3, api_key=settings.OPENAI_API_KEY)
-            
-            # Prepare medical data - include SOAP notes and reports
-            medical_data = []
-            
-            if soap_note and soap_note != "No SOAP note available":
-                medical_data.append(f"SOAP Note: {soap_note}")
-            else:
+
+            if not soap_note or soap_note == "No SOAP note available":
                 return "Please generate SOAP notes first to create a patient summary."
-            
-            # Include report information if available
+
+            # Prepare report summaries string
+            report_summaries_str = ""
             if reports:
                 report_summaries = []
                 for report in reports:
                     if report.summary and report.summary != "No summary available":
-                        report_summaries.append(f"Report ({report.file_path.split('/')[-1]}): {report.summary}")
-                
+                        report_summaries.append(f"- Report for {report.file_path.split('/')[-1]}: {report.summary}")
                 if report_summaries:
-                    medical_data.append(f"Medical Reports:\n" + "\n".join(report_summaries))
-            
-            # Fix: move join outside f-string
-            medical_data_str = '\n\n'.join(medical_data)
+                    report_summaries_str = "\n".join(report_summaries)
+
+            # REFINED PROMPT: Provides a clear structure for the AI to follow.
             prompt = f"""
-            As a medical AI assistant, create a concise, patient-friendly summary (maximum 5 sentences) based on the following medical data:
+            You are a compassionate medical AI assistant. Your task is to create a concise, patient-friendly summary based on the structured medical data provided below.
 
-            {medical_data_str}
+            --- MEDICAL DATA ---
 
-            Instructions:
-            1. Create a clear, compassionate summary that a patient can understand
-            2. Focus on key findings, diagnosis, and treatment plan
-            3. Use simple, non-technical language
-            4. Maximum 5 sentences
-            5. Do NOT include phrases like "specific details are not provided" or "given information"
-            6. If information is missing, focus on what IS available
-            7. Make it actionable and informative for the patient
-            8. Use "you" instead of "patient" to make it personal
-            9. Be encouraging and supportive in tone
-            10. If medical reports are mentioned, briefly reference key findings from them
-            11. Mention any important test results or imaging findings in simple terms
+            **Doctor's SOAP Note:**
+            {soap_note}
 
-            Patient Summary:
+            **Potential Diagnoses (DDx):**
+            {ddx_result if ddx_result and ddx_result.strip() else "Not provided."}
+
+            **Medical Report Summaries:**
+            {report_summaries_str if report_summaries_str else "No reports available."}
+
+            --- INSTRUCTIONS ---
+            Using the data above, please write a summary for the patient with the following characteristics:
+            1.  **Tone and Language:** Use a clear, encouraging, and supportive tone. Use simple, non-technical language and address the patient as "you".
+            2.  **Core Content:**
+                - Synthesize the "Assessment" from the SOAP note and the "Potential Diagnoses" to state the most likely diagnosis.
+                - Summarize the key findings from any "Medical Report Summaries".
+                - Translate the "Plan" from the SOAP note into clear, actionable next steps for you.
+            3.  **Format:** Keep the summary concise, to a maximum of 5 sentences.
+            4.  **Constraints:** Do NOT use vague phrases like "based on the information" or "details were not provided". Focus only on the information that is present.
+
+            **Patient Summary:**
             """
-            
+
             # Generate summary using AI
             response = await llm.ainvoke(prompt)
             return response.content.strip()
-            
+
         except Exception as e:
             print(f"Error generating AI summary: {e}")
             # Fallback to basic summary if AI fails
             return self._create_patient_friendly_summary(notes, soap_note, ddx_result, reports)
-    
+
     def update_patient_summary(self, consultation_id: int, ai_summary: str, summary: str, medications: list, recommendations: list, follow_up: str) -> dict:
         """
         Update the patient summary with doctor's edits including AI summary.

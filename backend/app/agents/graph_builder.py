@@ -41,13 +41,17 @@ class AgentGraphs:
 
     def _build_scribe_graph(self):
         scribe_nodes = ScribeNodes()
+
+        # Define the nodes for the simplified workflow
         self.scribe_workflow.add_node("transcribe_audio", scribe_nodes.transcribe_audio)
-        self.scribe_workflow.add_node("structure_transcript", scribe_nodes.structure_transcript)
         self.scribe_workflow.add_node("generate_soap_note", scribe_nodes.generate_soap_note)
         self.scribe_workflow.add_node("save_note", scribe_nodes.save_note)
+
+        # Set the entry point
         self.scribe_workflow.set_entry_point("transcribe_audio")
-        self.scribe_workflow.add_edge("transcribe_audio", "structure_transcript")
-        self.scribe_workflow.add_edge("structure_transcript", "generate_soap_note")
+
+        # Define the edges for the new, direct path
+        self.scribe_workflow.add_edge("transcribe_audio", "generate_soap_note")
         self.scribe_workflow.add_edge("generate_soap_note", "save_note")
         self.scribe_workflow.add_edge("save_note", END)
 

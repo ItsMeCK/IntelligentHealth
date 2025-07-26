@@ -1,5 +1,7 @@
 // frontend/js/api.js
-const API_BASE_URL = 'https://intelligent-health-479859828067.us-central1.run.app/api/v1';
+
+// API Configuration
+const API_BASE_URL = '/api/v1';  // Relative path for same host deployment
 
 const api = {
     // Debug function to check if API is loaded

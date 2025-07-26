@@ -18,6 +18,7 @@
     <header class="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
         <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
             <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg bg-blue-50 text-blue-700 mr-2"><i data-lucide="menu" class="h-6 w-6"></i></button>
                 <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-10 h-10 rounded-lg shadow" />
                 <span class="text-2xl font-extrabold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">MedFlow</span>
             </div>
@@ -26,9 +27,10 @@
                 <a href="#about" class="hover:text-blue-700 transition">About</a>
                 <button onclick="openSidenav()" class="px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow hover:scale-105 transition-transform">Login / Register</button>
             </nav>
-            <button onclick="openSidenav()" class="md:hidden p-2 rounded-lg bg-blue-50 text-blue-700"><i data-lucide="log-in" class="h-6 w-6"></i></button>
         </div>
     </header>
+    <!-- Mobile Sidenav Backdrop -->
+    <div id="sidenav-backdrop" class="fixed inset-0 bg-black bg-opacity-40 z-40 hidden md:hidden transition-opacity duration-300"></div>
 
     <!-- Sidenav for Login/Register -->
     <div id="sidenav" class="fixed top-0 right-0 h-full w-full md:w-[400px] bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col" style="will-change: transform;">
@@ -38,7 +40,7 @@
                 <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-12 h-12 rounded-lg shadow" />
                 <span class="text-lg font-bold text-gray-900">Sign In / Register</span>
             </div>
-            <button onclick="closeSidenav()" class="p-2 rounded hover:bg-gray-100"><i data-lucide="x" class="h-6 w-6"></i></button>
+            <button id="close-sidenav-btn" class="p-2 rounded hover:bg-gray-100"><i data-lucide="x" class="h-6 w-6"></i></button>
         </div>
         <div class="flex-1 overflow-y-auto flex flex-col items-center justify-center px-6 py-8">
             <!-- Login/Register Forms (moved from #auth-view) -->
@@ -118,15 +120,15 @@
 
     <!-- Apple-Style Hero Section -->
     <main class="pt-20 bg-white">
-        <section class="w-full flex flex-col md:flex-row items-center justify-center px-6 py-24 md:py-32 max-w-7xl mx-auto">
-            <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
-                <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-20 h-20 mb-6 rounded-2xl shadow-xl" />
-                <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">Meet MedFlow.</h1>
-                <p class="text-2xl text-gray-700 mb-8 max-w-xl">AI that empowers doctors.<br>Not just faster—smarter.</p>
-                <button onclick="openSidenav()" class="px-10 py-4 rounded-xl bg-gray-900 text-white font-semibold text-xl shadow-lg hover:bg-gray-800 transition">Get Started</button>
+        <section class="w-full flex flex-col md:flex-row items-center justify-center px-4 sm:px-6 py-16 md:py-32 max-w-7xl mx-auto">
+            <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left mb-8 md:mb-0">
+                <img src="assets/images/logo.png" alt="MedFlow Logo" class="w-16 h-16 sm:w-20 sm:h-20 mb-4 sm:mb-6 rounded-2xl shadow-xl" />
+                <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-4 sm:mb-6">Meet MedFlow.</h1>
+                <p class="text-lg sm:text-2xl text-gray-700 mb-6 sm:mb-8 max-w-xl">AI that empowers doctors.<br>Not just faster—smarter.</p>
+                <button onclick="openSidenav()" class="px-6 sm:px-10 py-3 sm:py-4 rounded-xl bg-gray-900 text-white font-semibold text-lg sm:text-xl shadow-lg hover:bg-gray-800 transition">Get Started</button>
             </div>
-            <div class="flex-1 flex justify-center mt-12 md:mt-0">
-                <img src="assets/images/consultation.png" alt="MedFlow Hero" class="w-[420px] h-[320px] object-contain rounded-3xl shadow-xl border border-gray-100" />
+            <div class="flex-1 flex justify-center mt-8 md:mt-0">
+                <img src="assets/images/consultation.png" alt="MedFlow Hero" class="w-full max-w-xs sm:w-[420px] h-auto sm:h-[320px] object-contain rounded-3xl shadow-xl border border-gray-100" />
             </div>
         </section>
 
@@ -231,6 +233,31 @@
             const sidenav = document.getElementById('sidenav');
             if (!sidenav.classList.contains('translate-x-full') && !sidenav.contains(e.target) && !e.target.closest('button[onclick="openSidenav()"]')) {
                 closeSidenav();
+            }
+        });
+    </script>
+
+    <script>
+        // Mobile sidenav logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidenav = document.getElementById('sidenav');
+        const sidenavBackdrop = document.getElementById('sidenav-backdrop');
+        const closeSidenavBtn = document.getElementById('close-sidenav-btn');
+        function openSidenavMobile() {
+            sidenav.classList.remove('translate-x-full');
+            sidenavBackdrop.classList.remove('hidden');
+        }
+        function closeSidenavMobile() {
+            sidenav.classList.add('translate-x-full');
+            sidenavBackdrop.classList.add('hidden');
+        }
+        mobileMenuBtn?.addEventListener('click', openSidenavMobile);
+        closeSidenavBtn?.addEventListener('click', closeSidenavMobile);
+        sidenavBackdrop?.addEventListener('click', closeSidenavMobile);
+        // Hide sidenav on resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                closeSidenavMobile();
             }
         });
     </script>

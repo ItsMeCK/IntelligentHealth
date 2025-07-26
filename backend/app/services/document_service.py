@@ -45,8 +45,9 @@ class DocumentService:
 
         documents = loader.load()
         summarize_chain = load_summarize_chain(self.llm, chain_type="map_reduce")
-        summary_result = summarize_chain.run(documents)
-        return summary_result
+        # Using the modern .invoke() method
+        result_dict = summarize_chain.invoke({"input_documents": documents})
+        return result_dict.get('output_text', '')
 
     def _generate_summary_for_image(self, file_path: str) -> str:
         """Generates a descriptive summary for an image file."""
@@ -86,18 +87,25 @@ class DocumentService:
 
         if file_ext_lower in TEXT_EXTENSIONS:
             print(f"Processing TEXT document for consultation {consultation_id} (Qdrant bypassed)")
-            # Load and concatenate all text, then summarize
+            # Load the document based on its extension
             if file_ext_lower == '.pdf':
                 loader = PyPDFLoader(file_path)
-                docs = loader.load()
-                full_text = "\n".join([doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in docs])
-            else:
+            else:  # .docx
                 loader = Docx2txtLoader(file_path)
-                docs = loader.load()
-                full_text = "\n".join([doc.page_content if hasattr(doc, 'page_content') else str(doc) for doc in docs])
-            # Summarize using LLM directly
+
+            docs = loader.load()
+
+            # Summarize using the loaded list of Document objects
             summarize_chain = load_summarize_chain(self.llm, chain_type="map_reduce")
-            summary_result = summarize_chain.run([full_text])
+
+            # FIX: Pass the list of Document objects directly to the chain.
+            # FIX: Use the modern .invoke() method instead of the deprecated .run().
+            # The .invoke() method for this chain expects a dictionary with the key "input_documents".
+            result_dict = summarize_chain.invoke({"input_documents": docs})
+
+            # The summary is in the 'output_text' key of the result dictionary.
+            summary_result = result_dict.get('output_text', '')
+
             return summary_result
 
         elif file_ext_lower in IMAGE_EXTENSIONS:
@@ -107,4 +115,3 @@ class DocumentService:
 
         else:
             raise ValueError(f"Unsupported file type for processing: {file_extension}")
-

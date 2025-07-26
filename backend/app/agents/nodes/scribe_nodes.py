@@ -7,100 +7,86 @@ from app.models.consultation import Consultation
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
-from typing import List  # <--- This is the missing import
+from typing import List
 
 # Initialize clients
 openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
 llm = ChatOpenAI(model="gpt-4o", temperature=0, api_key=settings.OPENAI_API_KEY)
 
 
-# Pydantic model for structured data extraction
-class TranscriptSummary(BaseModel):
-    """Structured representation of a medical transcript."""
-    patient_symptoms: List[str] = Field(description="List of all symptoms mentioned by the patient.")
-    doctor_observations: List[str] = Field(description="List of key observations made by the doctor.")
-    prescribed_medications: List[str] = Field(description="List of all medications prescribed or mentioned.")
-    follow_up_instructions: List[str] = Field(description="List of follow-up actions or appointments suggested.")
-
-
 class ScribeNodes:
     """
     Contains all the functions (nodes) for the Scribe LangGraph agent.
+    This has been simplified to a direct generation approach for improved reliability.
     """
 
     def transcribe_audio(self, state):
+        """Transcribes the audio file to text."""
         print("--- Node: Transcribing Audio ---")
         try:
-            audio_file = open(state['audio_file_path'], "rb")
-            transcription = openai_client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file
-            )
+            with open(state['audio_file_path'], "rb") as audio_file:
+                transcription = openai_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file
+                )
             print(f"Transcription successful: {transcription.text[:100]}...")
             return {"transcription": transcription.text}
         except Exception as e:
             print(f"Error in transcription: {e}")
             return {"error": "Failed to transcribe audio."}
 
-    def structure_transcript(self, state):
-        print("--- Node: Structuring Transcript ---")
-        try:
-            prompt = ChatPromptTemplate.from_messages([
-                ("system",
-                 "You are an expert medical assistant. Extract key information from the following medical consultation transcript. Respond with a JSON object matching the specified schema."),
-                ("human", "Transcript:\n\n{transcript}")
-            ])
-            structured_llm = llm.with_structured_output(TranscriptSummary)
-            chain = prompt | structured_llm
-            summary = chain.invoke({"transcript": state['transcription']})
-            print(f"Structuring successful: {summary}")
-            return {"structured_summary": summary.dict()}
-        except Exception as e:
-            print(f"Error structuring transcript: {e}")
-            return {"error": "Failed to structure transcript."}
-
     def generate_soap_note(self, state):
-        print("--- Node: Generating SOAP Note ---")
+        """
+        Generates a complete SOAP note directly from the transcript in a single step.
+        This is more reliable than multi-step extraction and generation.
+        """
+        print("--- Node: Generating SOAP Note Directly ---")
         try:
-            summary = state['structured_summary']
-            prompt_template = prompt_template = """
-            You are an expert clinical note writer. Your task is to generate a SOAP note from the provided structured information.
-            The note should be based ONLY on the information given.
-            If a section has no information, explicitly state that (e.g., "No specific symptoms were mentioned by the patient.").
-            Do not make up information or add details not present in the provided context.
+            transcript = state['transcription']
 
-            CRITICAL: Your response must be EXACTLY 10 lines or fewer. Be concise and focused.
+            # This prompt instructs the AI to perform the entire task in one go.
+            prompt_template = """
+            You are an expert medical scribe. Your task is to analyze the following medical consultation transcript and generate a concise SOAP note.
 
-            Provided Information:
-            - Patient Symptoms: {symptoms}
-            - Doctor's Observations: {observations}
-            - Prescribed Medications: {medications}
-            - Follow-up Instructions: {follow_up}
+            **Instructions:**
+            1.  Read the entire transcript carefully.
+            2.  The conversation may be in Marathi, Hindi, English, or a mix. The SOAP note **MUST** be in the same language as the conversation.
+            3.  Create four distinct sections: Subjective (S), Objective (O), Assessment (A), and Plan (P).
+            4.  **Subjective (S):** What the patient says about their problem (e.g., "डोक दुखत आहे").
+            5.  **Objective (O):** The doctor's direct observations and findings.
+            6.  **Assessment (A):** The doctor's diagnosis or assessment of the condition.
+            7.  **Plan (P):** This is the most critical part. Listen for **any** instructions from the doctor, including:
+                - Prescribed medications.
+                - Recommended exercises or therapies.
+                - Lifestyle advice (e.g., "take rest," "apply hot pack").
+                - Follow-up appointment details.
+                - Any other actions the patient should take.
+            8.  If any section has no information, write "Not specified" or "माहिती नाही".
+            9.  The final note should be clear, conversational, and concise. Aim for a maximum of 10-12 lines, but ensure the full plan is included.
 
-            Generate the SOAP note now with clear headings for Subjective, Objective, Assessment, and Plan.
+            --- MEDICAL TRANSCRIPT ---
+            {transcript}
+            ---
+
+            Generate the SOAP note now:
             """
             prompt = ChatPromptTemplate.from_template(prompt_template)
             chain = prompt | llm
 
-            note = chain.invoke({
-                "symptoms": ", ".join(summary.get('patient_symptoms', [])),
-                "observations": ", ".join(summary.get('doctor_observations', [])),
-                "medications": ", ".join(summary.get('prescribed_medications', [])),
-                "follow_up": ", ".join(summary.get('follow_up_instructions', []))
-            })
-            
-            # Limit to 10 lines maximum
+            note = chain.invoke({"transcript": transcript})
+
+            # FIX: Removed the hard 10-line limit to prevent truncating the plan.
+            # The prompt now guides the AI to be concise, which is a more flexible approach.
             content = note.content
-            lines = content.split('\n')
-            limited_content = '\n'.join(lines[:10])
-            
-            print(f"SOAP note generated successfully.")
-            return {"final_note": limited_content}
+
+            print("SOAP note generated successfully.")
+            return {"final_note": content}
         except Exception as e:
             print(f"Error generating SOAP note: {e}")
             return {"error": "Failed to generate SOAP note."}
 
     def save_note(self, state):
+        """Saves the final generated note to the database."""
         print("--- Node: Saving Note to DB ---")
         db = SessionLocal()
         try:
